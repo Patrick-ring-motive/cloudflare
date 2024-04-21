@@ -176,6 +176,7 @@ globalThis.zread = async function(reader) {
 };
 
 globalThis.zatob=function(str){
+  str=`${str}`;
   try{
     return atob(str);
   }catch(e){
