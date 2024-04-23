@@ -3,8 +3,8 @@ globalThis.ctxAwaitUntil = function(ctx) {
         ctx.waitUntil(promise);
         return promise;
     }
-    return ctx
-}
+    return ctx;
+};
 
 export default {
     fetch(request, env, ctx) {
