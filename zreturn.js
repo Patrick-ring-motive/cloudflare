@@ -21,10 +21,10 @@ if(!globalThis.serializeHTTP){
 
 globalThis.zfetch = async function() {
     try {
-        return await fetch(...arguments);
+        return await fetch.apply(this,arguments);
     } catch (e) {
         try{
-            return await fetch(arguments[0]);
+            return await fetch.call(this,arguments[0]);
         }catch(r){
         console.log(e);
         return new Response(arguments[0]+'\n'+e.message+'\n'+e.stack, {
@@ -98,7 +98,7 @@ globalThis.zfetch = async function() {
 
   globalThis.zfetchText = async function(){
     try{
-        let res = await fetch(...arguments);
+        let res = await fetch.apply(this,arguments);
         if(res.status > 399){
             return res.statusText;
         }
