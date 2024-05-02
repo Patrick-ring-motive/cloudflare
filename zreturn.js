@@ -18,21 +18,53 @@ if(!globalThis.serializeHTTP){
       return reDTO;
     }
 }
+
+globalThis.newReadableStream=function(input){
+    return new Response(input).body;
+}
+
 globalThis.appendZResponseMethods=function(res){
+    res = res || new Response(`${res}`);
+    res.zbody = function(){
+        res.body = res?.body||newReadableStream(`${res?.body}`);
+        if(!res.body.zgetReader){
+            res.body.zgetReader = function(){
+                try{
+                    let r = Object.create(null);
+                    r.reader = res.body.getReader();
+                    r.almostDone = false;
+                    return r;
+                }catch(e){
+                    let r = Object.create(null);
+                    r.reader = newReadableStream(e.message).getReader();
+                    r.almostDone = false;
+                    return r;
+                }
+            }
+        }
+        return res.body
+    }
+    res.ztext = async function(){
+        try{
+            return await res.text();
+        }catch(e){
+            return e.message;
+        }
+    }
     return res;
 }
 globalThis.zfetch = async function() {
     try {
-        return await fetch.apply(this,arguments);
+        return appendZResponseMethods(await fetch.apply(this,arguments));
     } catch (e) {
         try{
-            return await fetch.call(this,arguments[0]);
+            return appendZResponseMethods(await fetch.call(this,arguments[0]));
         }catch(r){
         console.log(e);
-        return new Response(arguments[0]+'\n'+e.message+'\n'+e.stack, {
+        return appendZResponseMethods(new Response(arguments[0]+'\n'+e.message+'\n'+e.stack, {
             status: 569,
             statusText: e.message
-        });
+        }));
     }
     }
   };
