@@ -161,7 +161,7 @@ globalThis.zfetch = async function() {
     }catch(e){
             res = new Response(e.message,{status:569,statusText:e.message});   
     }
-    return res;
+    return appendZResponseMethods(res);
   }
 
   globalThis.zfetchText = async function(){
