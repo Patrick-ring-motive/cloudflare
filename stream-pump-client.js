@@ -7,7 +7,7 @@ setInterval(function(){
    output = streamQueue.shift(); 
   }
   if(output.lengh){
-    body.textContent=body.textContent+output;
+    document.body.textContent = document.body.textContent+output;
   }
 },100);
 
