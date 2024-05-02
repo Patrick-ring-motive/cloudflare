@@ -1,15 +1,15 @@
 document.body.textContent='';
 
 globalThis.streamQueue=[];
-globalThis.runningTotal='';
+globalThis.unmodifiedOutput='';
 setInterval(function(){
   let output='';
   while(streamQueue.length){
    output += streamQueue.shift(); 
   }  
   if(output.length){
-    runningTotal = runningTotal + output;
-    document.body.textContent = runningTotal.replace(/<head.*\/head>/gi,'HEAD').replace(/<script.*script>/gi,'SCRIPT').replace(/<style.*style>/gi,'STYLE').replace(/<[^>]*>/g,' ');
+    unmodifiedOutput = unmodifiedOutput + output;
+    document.body.textContent = unmodifiedOutput.toUpperCase();
   }
 },100);
 
