@@ -23,6 +23,14 @@ globalThis.newReadableStream=function(input){
     return new Response(input).body;
 }
 
+globalThis.znewReadableStream=function(input){
+    try{
+        return newReadableStream(input);
+    }catch(e){
+        return newReadableStream(e.message);
+    }
+}
+
 globalThis.newArrayBuffer = function(input) {
   var buf = new ArrayBuffer(input.length*2);
   var bufView = new Uint16Array(buf);
@@ -32,11 +40,19 @@ globalThis.newArrayBuffer = function(input) {
   return buf;
 }
 
+globalThis.znewArrayBuffer=function(input){
+    try{
+        return newArrayBuffer(input);
+    }catch(e){
+        return newArrayBuffer(e.message);
+    }
+}
+
 
 globalThis.appendZResponseMethods=function(res){
     res = res || new Response(`${res}`);
     res.zbody = function(){
-        res.body = res?.body||newReadableStream(`${res?.body}`);
+        res.body = res?.body||znewReadableStream(`${res?.body}`);
         if(!res.body.zgetReader){
             res.body.zgetReader = function(){
                 try{
@@ -46,7 +62,7 @@ globalThis.appendZResponseMethods=function(res){
                     return r;
                 }catch(e){
                     let r = Object.create(null);
-                    r.reader = newReadableStream(e.message).getReader();
+                    r.reader = znewReadableStream(e.message).getReader();
                     r.almostDone = false;
                     return r;
                 }
@@ -65,7 +81,7 @@ globalThis.appendZResponseMethods=function(res){
         try{
             return await res.arrayBuffer();
         }catch(e){
-            return newArrayBuffer(e.message);
+            return znewArrayBuffer(e.message);
         }
     }
     return res;
