@@ -1,14 +1,15 @@
 document.body.textContent='';
 
 globalThis.streamQueue=[];
-
+globalThis.runningTotal='';
 setInterval(function(){
   let output='';
   while(streamQueue.length){
    output += streamQueue.shift(); 
   }  
   if(output.length){
-    document.body.textContent = document.body.textContent + output;
+    runningTotal = runningTotal + output;
+    document.body.textContent = runningTotal.replace(/<head.*\/head>/gi,'HEAD').replace(/<script.*script>/gi,'SCRIPT').replace(/<style.*style>/gi,'STYLE').replace(/<[^>]*>/g,' ');
   }
 },100);
 
