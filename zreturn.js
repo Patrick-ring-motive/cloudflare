@@ -18,7 +18,9 @@ if(!globalThis.serializeHTTP){
       return reDTO;
     }
 }
-
+globalThis.appendZResponseMethods=function(res){
+    return res;
+}
 globalThis.zfetch = async function() {
     try {
         return await fetch.apply(this,arguments);
@@ -149,7 +151,7 @@ globalThis.zgetReader = function(stream) {
 }
 
 globalThis.zread = async function(reader) {
-    if (reader.almostDone) {
+    if (reader?.almostDone) {
         try {
             reader.reader.releaseLock();
         } catch (e) {}
@@ -167,7 +169,9 @@ globalThis.zread = async function(reader) {
         }
         return rtrn;
     } catch (e) {
-        reader.almostDone = true;
+        if(reader){
+            reader.almostDone = true;
+        }
         return {
             value: e.message,
             done: false
