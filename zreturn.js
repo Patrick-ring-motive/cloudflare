@@ -23,6 +23,16 @@ globalThis.newReadableStream=function(input){
     return new Response(input).body;
 }
 
+globalThis.newArrayBuffer = function(input) {
+  var buf = new ArrayBuffer(input.length*2);
+  var bufView = new Uint16Array(buf);
+  for (let i=0, inputLen=inputLen.length; i<inputLen; i++) {
+    bufView[i] = input?.charCodeAt?.(i)||+input[i];
+  }
+  return buf;
+}
+
+
 globalThis.appendZResponseMethods=function(res){
     res = res || new Response(`${res}`);
     res.zbody = function(){
@@ -51,9 +61,17 @@ globalThis.appendZResponseMethods=function(res){
             return e.message;
         }
     }
+    res.zarrayBuffer = async function(){
+        try{
+            return await res.arrayBuffer();
+        }catch(e){
+            return newArrayBuffer(e.message);
+        }
+    }
     return res;
 }
 globalThis.zfetch = async function() {
+    let res;
     try {
         return appendZResponseMethods(await fetch.apply(this,arguments));
     } catch (e) {
