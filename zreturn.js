@@ -48,6 +48,30 @@ globalThis.znewArrayBuffer=function(input){
     }
 }
 
+globalThis.responseText=async function(res){
+    return await res.text();
+};
+
+globalThis.zresponseText=async function(re){
+    try{
+        return await responseText(res);
+    }catch(e){
+        return e.message;
+    }
+}
+
+globalThis.responseArrayBuffer=async function(res){
+    return await res.arrayBuffer();
+};
+
+globalThis.zresponseArrayBuffer=async function(re){
+    try{
+        return await responseArrayBuffer(res);
+    }catch(e){
+        return znewArrayBuffer(e.message);
+    }
+}
+
 
 globalThis.appendZResponseMethods=function(res){
     res = res || new Response(`${res}`);
