@@ -49,7 +49,7 @@ globalThis.znewArrayBuffer=function(input){
 }
 
 globalThis.responseText=async function(res){
-    return await res.text();
+    return await Response.prototype.text.apply(res);
 };
 
 globalThis.zresponseText=async function(re){
@@ -61,7 +61,7 @@ globalThis.zresponseText=async function(re){
 }
 
 globalThis.responseArrayBuffer=async function(res){
-    return await res.arrayBuffer();
+    return await Response.prototype.text.arrayBuffer(res);
 };
 
 globalThis.zresponseArrayBuffer=async function(re){
