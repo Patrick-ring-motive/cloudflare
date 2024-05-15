@@ -202,37 +202,31 @@ globalThis.zfetch = async function() {
 
 
 globalThis.zdecoder = function() {
-    if (!globalThis.decoder) {
-        globalThis.decoder = new TextDecoder();
-        globalThis.decoder.zdecode = function(raw) {
+        globalThis.decoder ??= new TextDecoder();
+        globalThis.decoder.zdecode ??= function(raw) {
             try {
                 return globalThis.decoder.decode(raw);
             } catch (e) {
                 return e.message;
             }
         }
-    }
     return globalThis.decoder;
 }
 
 globalThis.zencoder = function() {
-    if (!globalThis.encoder) {
-        globalThis.encoder = new TextEncoder();
-        globalThis.encoder.zencode = function(str) {
+        globalThis.encoder ??= new TextEncoder();
+        globalThis.encoder.zencode ??= function(str) {
             try {
                 return globalThis.encoder.encode(str);
             } catch (e) {
                 return e.message.toCharCodes();
             }
         }
-    }
     return globalThis.encoder;
 }
 
 globalThis.zgetReader = function(stream) {
-    if (!stream) {
-        return;
-    }
+    if (!stream) {return;  }
     let r = Object.create(null);
     r.reader = stream.getReader();
     r.almostDone = false;
