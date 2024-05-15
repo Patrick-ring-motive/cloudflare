@@ -73,11 +73,10 @@ globalThis.zresponseArrayBuffer=async function(re){
 
 
 globalThis.appendZResponseMethods=function(res){
-    res = res || new Response(`${res}`);
+    res ??= new Response(`${res}`);
     res.zbody = function(){
-        res.body = res?.body||znewReadableStream(`${res?.body}`);
-        if(!res.body.zgetReader){
-            res.body.zgetReader = function(){
+        res.body ??= znewReadableStream(`${res?.body}`);
+            res.body.zgetReader ??= function(){
                 try{
                     let r = Object.create(null);
                     r.reader = res.body.getReader();
@@ -90,7 +89,6 @@ globalThis.appendZResponseMethods=function(res){
                     return r;
                 }
             }
-        }
         return res.body
     }
     res.ztext = async function(){
