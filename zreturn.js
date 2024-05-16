@@ -53,19 +53,19 @@ globalThis.responseText=async function(res){
 
 globalThis.zresponseText=async function(re){
     try{
-        return await responseText(res);
+        return await responseText(re);
     }catch(e){
         return e.message;
     }
 }
 
 globalThis.responseArrayBuffer=async function(res){
-    return await Response.prototype.text.arrayBuffer(res);
+    return await Response.prototype.arrayBuffer.apply(res);
 };
 
 globalThis.zresponseArrayBuffer=async function(re){
     try{
-        return await responseArrayBuffer(res);
+        return await responseArrayBuffer(re);
     }catch(e){
         return znewArrayBuffer(e.message);
     }
@@ -272,6 +272,3 @@ globalThis.zatob=function(str){
     }
   }
 }
-
-
-
