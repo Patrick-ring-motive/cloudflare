@@ -482,7 +482,7 @@ if(arr2.length>arr1.length){
 
 const lessErr = function lessErr(str){
 
-                return str.replace(/Exception|Error/gi,'').replace(/Err/gi,'').split(' ').filter(x=>x&&x?.length).join(' ');
+                return String(str).replace(/Exception|Error/gi,'').replace(/Err/gi,'').split(' ').filter(x=>x&&x?.length).join(' ');
 
 }
 
