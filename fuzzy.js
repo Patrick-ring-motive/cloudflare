@@ -402,7 +402,7 @@ if(arr2.length>arr1.length){
 
     const dp = Array(arr1.length+1).fill(0).map(() => Array(arr2.length+1).fill(0));
 
-                const dp_length = dp.length;
+    const dp_length = dp.length;
 
     for(let i = 1; i !== dp_length; i++) {
 
@@ -432,7 +432,7 @@ if(arr2.length>arr1.length){
 
 const wordMatch = function wordMatch(str1,str2){
 
-                return lcs(str1,str2) >= (0.8 * Math.max(str1?.length??0,str2?.length??0));
+                return lcs(str1,str2) >= Math.floor(0.8 * Math.max(str1?.length??0,str2?.length??0));
 
 }
 
@@ -482,7 +482,7 @@ if(arr2.length>arr1.length){
 
 const lessErr = function lessErr(str){
 
-                return str.replace(/Exception|Error/gi,'').replace(/Err/gi,'');
+                return str.replace(/Exception|Error/gi,'').replace(/Err/gi,'').split(' ').filter(x=>x&&x?.length).join(' ');
 
 }
 
