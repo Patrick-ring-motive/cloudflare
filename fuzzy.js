@@ -224,7 +224,7 @@ const lcws = function lcs(seq1, seq2) {
   return dp[arr1.length][arr2.length]
 };
 const lessErr = function lessErr(str) {
-  return String(str).replace(/Exception|Error/gi, '').replace(/Err/gi, '').split(' ').filter(x => x && x?.length).join(' ');
+  return String(str).replace(/[^a-zA-Z ]/g, ' ').replace(/Exception|Error/gi, '').replace(/Err/gi, '').split(' ').filter(x => x && x?.length).join(' ');
 }
 const doMatch = function doMatch(str1, str2) {
   str1 = lessErr(str1).toLowerCase();
