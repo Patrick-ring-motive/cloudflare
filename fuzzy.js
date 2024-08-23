@@ -229,7 +229,7 @@ const lessErr = function lessErr(str) {
 const doMatch = function doMatch(str1, str2) {
   str1 = lessErr(str1).toLowerCase();
   str2 = lessErr(str2).toLowerCase();
-  return lcs(str1, str2) / 10 + lcws(str1, str2);
+  return (lcs(str1, str2) * 0.1) + lcws(str1, str2);
 }
 const fuzzyMatch = function fuzzyMatch(str) {
   let list = errorCodeList.map(x => [...x, doMatch(str, x[1])]);
