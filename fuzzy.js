@@ -501,39 +501,27 @@ const doMatch = function doMatch(str1,str2){
  
 
 const fuzzyMatch = function fuzzyMatch(str){
-
                 let list = errorCodeList.map(x=>[...x,doMatch(str,x[1])]);
-
                 list = list.sort((a,b)=>b[2]-a[2]);
-
                 return list[0];
-
 }
 
  
 
 async function fuzzyFetch() {
-
     let res;
-
     try {
-
         return await fetch.apply(this,arguments);
-
     } catch (e) {
-
         console.log(e);
-
+        const match = fuzzyMatch(e.message);
+        let code = 569;
+        if(match[2] >= 2){code = match[0] || 569;}
         return (new Response(arguments[0]+'\n'+e.message+'\n'+e.stack, {
-
-            status: fuzzyMatch(e.message)[0],
-
+            status: code,
             statusText: e.message
-
         }));
-
     }
-
   };
 
  
