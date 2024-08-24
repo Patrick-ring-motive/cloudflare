@@ -114,7 +114,7 @@ globalThis.zfetch = async function() {
     } catch (e) {
         try{
             return appendZResponseMethods(await fetch.call(this,arguments[0]));
-        }catch(r){
+        }catch(_){
         console.log(e);
         return appendZResponseMethods(new Response(arguments[0]+'\n'+e.message+'\n'+e.stack, {
             status: 569,
@@ -145,7 +145,7 @@ globalThis.zfetch = async function() {
             }catch(e){
                 try{
                     req = new Request(input);
-                }catch(r){
+                }catch(_){
                 options = serializeHTTP(options);
                 options.body = e.message;
                 req = new Request(input,options);
@@ -171,10 +171,10 @@ globalThis.zfetch = async function() {
         }else{
             try{
                 res = new Response(body,options);
-            }catch(e){
+            }catch(_){
                 try{
                     res = new Response(`${body}`,options);
-                }catch(e){
+                }catch(_){
                     res = new Response(`${body}`);
                 }
             }
