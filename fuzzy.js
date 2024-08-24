@@ -179,6 +179,26 @@ const ftpStatusErrors = {
   632: "Confidentiality and integrity protected reply",
   633: "Confidentiality protected reply",
 }
+const objDoProp = function (obj, prop, def, enm, mut) {
+  return Object.defineProperty(obj, prop, {
+    value: def,
+    writable: mut,
+    enumerable: enm,
+    configurable: mut
+  });
+};
+const objDefProp=(obj, prop, def) => objDoProp (obj, prop, def, false, true);
+const objDefEnum=(obj, prop, def) => objDoProp (obj, prop, def, true, true);
+objDefProp(String.prototype,"remove",function remove(re){
+  return this.replace(re,'');
+});
+objDefProp(Array.prototype,"joinWords",function joinWords(re){
+  return this.join(' ');
+});
+objDefProp(String.prototype,"splitWords",function splitWords(re){
+  return this.split(' ');
+});
+
 const errorCodeList = [officialStatusErrors, unofficialStatusErrors, ftpStatusErrors].reduce((x, y) => x.concat(Object.entries(y)), []);
 const lcs = function lcs(seq1, seq2) {
   "use strict";
@@ -206,8 +226,8 @@ const wordMatch = function wordMatch(str1, str2) {
 }
 const lcws = function lcws(seq1, seq2) {
   "use strict";
-  let arr1 = seq1.replace(/[^a-zA-Z ]/g, ' ').toLowerCase().split` `;
-  let arr2 = seq2.replace(/[^a-zA-Z ]/g, ' ').toLowerCase().split` `;
+  let arr1 = seq1.replace(/[^a-zA-Z ]/g, ' ').toLowerCase().splitWords();
+  let arr2 = seq2.replace(/[^a-zA-Z ]/g, ' ').toLowerCase().splitWords();
   if (arr2.length > arr1.length) {
     [arr1, arr2] = [arr2, arr1];
   }
@@ -228,12 +248,11 @@ const lcws = function lcws(seq1, seq2) {
 const lessErr = function lessErr(str) {
   return String(str).toLowerCase()
                      .replace(/[^a-zA-Z ]/g, ' ')
-                     .replace(/Exception|Error/gi, '')
-                     .replace(/Err/gi, '')
-                     .split(' ')
+                     .remove(/Exception|Error/gi)
+                     .remove(/Err/gi)
+                     .splitWords()
                      .filter(x => x && x?.length)
-                      
-                     .join(' ');
+                     .joinWords();
 }
 const doMatch = function doMatch(str1, str2) {
   str1 = lessErr(str1);
