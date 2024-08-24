@@ -181,8 +181,8 @@ const ftpStatusErrors = {
 }
 const errorCodeList = [officialStatusErrors, unofficialStatusErrors, ftpStatusErrors].reduce((x, y) => x.concat(Object.entries(y)), []);
 const lcs = function lcs(seq1, seq2) {
-  let arr1 = [...seq1 ?? []];
-  let arr2 = [...seq2 ?? []];
+  let arr1 = [...seq1??[]];
+  let arr2 = [...seq2??[]];
   if (arr2.length > arr1.length) {
     [arr1, arr2] = [arr2, arr1];
   }
@@ -224,7 +224,12 @@ const lcws = function lcws(seq1, seq2) {
   return dp[arr1.length][arr2.length]
 };
 const lessErr = function lessErr(str) {
-  return String(str).replace(/[^a-zA-Z ]/g, ' ').replace(/Exception|Error/gi, '').replace(/Err/gi, '').split(' ').filter(x => x && x?.length).join(' ');
+  return String(str).replace(/[^a-zA-Z ]/g, ' ')
+                     .replace(/Exception|Error/gi, '')
+                     .replace(/Err/gi, '')
+                     .split(' ')
+                     .filter(x => x && x?.length)
+                     .join(' ');
 }
 const doMatch = function doMatch(str1, str2) {
   str1 = lessErr(str1).toLowerCase();
@@ -246,7 +251,7 @@ async function fuzzyFetch() {
     if (match[2] >= 2) {
       code = match[0] || 569;
     }
-    return (new Response(arguments[0] + '\n' + e.message + '\n' + e.stack, {
+    return (new Response(arguments[0] + '\n' +  e.message + '\n' + e.stack, {
       status: code,
       statusText: e.message
     }));
