@@ -86,9 +86,9 @@ const unofficialStatusCodes200 = {
 const unofficialStatusErrors = {
   419: "Page Expired",
   420: "Method Failure",
-  420: "Enhance Your Calm",
+  "420.0": "Enhance Your Calm",
   430: "Request Header Fields Too Large",
-  430: "Shopify Security Rejection",
+  "430.0": "Shopify Security Rejection",
   440: "Login Time-out",
   444: "No Response",
   449: "Retry With",
@@ -112,7 +112,7 @@ const unofficialStatusErrors = {
   527: "Railgun Error",
   529: "Site is overloaded",
   530: "Site is frozen",
-  530: "Origin DNS Error",
+ "530.0": "Origin DNS Error",
   540: "Temporarily Disabled",
   598: "Network read timeout error",
   599: "Network Connect Timeout Error",
@@ -249,7 +249,7 @@ async function fuzzyFetch() {
     const match = fuzzyMatch(e.message);
     let code = 569;
     if (match[2] >= 2) {
-      code = match[0] || 569;
+      code = +match[0] || 569;
     }
     return (new Response(arguments[0] + '\n' +  e.message + '\n' + e.stack, {
       status: code,
