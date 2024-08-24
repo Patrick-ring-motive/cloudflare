@@ -203,7 +203,7 @@ const lcs = function lcs(seq1, seq2) {
 const wordMatch = function wordMatch(str1, str2) {
   return lcs(str1, str2) >= Math.floor(0.8 * Math.max(str1?.length ?? 0, str2?.length ?? 0));
 }
-const lcws = function lcs(seq1, seq2) {
+const lcws = function lcws(seq1, seq2) {
   let arr1 = seq1.replace(/[^a-zA-Z ]/g, ' ').toLowerCase().split` `;
   let arr2 = seq2.replace(/[^a-zA-Z ]/g, ' ').toLowerCase().split` `;
   if (arr2.length > arr1.length) {
