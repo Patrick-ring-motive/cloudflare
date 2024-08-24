@@ -189,7 +189,7 @@ const objDoProp = function (obj, prop, def, enm, mut) {
 };
 const objDefProp=(obj, prop, def) => objDoProp (obj, prop, def, false, true);
 const objDefEnum=(obj, prop, def) => objDoProp (obj, prop, def, true, true);
-objDefProp(String.prototype,"remove",function remove(re){
+objDefProp(String.prototype,"rm",function rm(re){
   return this.replace(re,'');
 });
 objDefProp(Array.prototype,"joinWords",function joinWords(re){
@@ -248,8 +248,8 @@ const lcws = function lcws(seq1, seq2) {
 const lessErr = function lessErr(str) {
   return String(str).toLowerCase()
                      .replace(/[^a-zA-Z ]/g, ' ')
-                     .remove(/Exception|Error/gi)
-                     .remove(/Err/gi)
+                     .rm(/Exception|Error/gi)
+                     .rm(/Err/gi)
                      .splitWords()
                      .filter(x => x && x?.length)
                      .joinWords();
