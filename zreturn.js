@@ -31,11 +31,11 @@ globalThis.znewReadableStream=function(input){
 }
 
 globalThis.newArrayBuffer = function(input) {
-  var buf = new ArrayBuffer(input.length*2);
-  var bufView = new Uint16Array(buf);
+  const buf = new ArrayBuffer(input.length*2);
+  const bufView = new Uint16Array(buf);
   for (let i=0, inputLen=input.length; i<inputLen; i++) {try{
     bufView[i] = input?.charCodeAt?.(i)||+input[i];
-  }catch(e){continue;}}
+  }catch(_){continue;}}
   return buf;
 }
 
