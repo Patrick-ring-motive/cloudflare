@@ -224,16 +224,18 @@ const lcws = function lcws(seq1, seq2) {
   return dp[arr1.length][arr2.length]
 };
 const lessErr = function lessErr(str) {
-  return String(str).replace(/[^a-zA-Z ]/g, ' ')
+  return String(str).toLowerCase()
+                     .replace(/[^a-zA-Z ]/g, ' ')
                      .replace(/Exception|Error/gi, '')
                      .replace(/Err/gi, '')
                      .split(' ')
                      .filter(x => x && x?.length)
+                      
                      .join(' ');
 }
 const doMatch = function doMatch(str1, str2) {
-  str1 = lessErr(str1).toLowerCase();
-  str2 = lessErr(str2).toLowerCase();
+  str1 = lessErr(str1);
+  str2 = lessErr(str2);
   return (lcs(str1, str2) * 0.1) + lcws(str1, str2);
 }
 const fuzzyMatch = function fuzzyMatch(str) {
