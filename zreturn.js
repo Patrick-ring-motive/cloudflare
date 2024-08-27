@@ -15,7 +15,7 @@ globalThis.serializeHTTP??=function(re){
     re.headers.forEach((value, key) => {
         reDTO.headers[`${key}`.replace(/[^a-zA-Z]+/g,'-').replace(/[-]$/,'')]=`${value}`;
     });
-  return reDTO;
+  return {...reDTO};
 };
 
 globalThis.newReadableStream=function(input){
