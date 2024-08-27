@@ -259,7 +259,7 @@ const doMatch = function doMatch(str1, str2) {
   str2 = lessErr(str2);
   return (lcs(str1, str2) * 0.1) + lcws(str1, str2);
 }
-const fuzzyMatch = function fuzzyMatch(str) {
+export const fuzzyMatch = function fuzzyMatch(str) {
   let list = errorCodeList.map(x => [...x, doMatch(str, x[1])]);
   list = list.sort((a, b) => b[2] - a[2]);
   return list[0];
