@@ -1,22 +1,19 @@
 
-globalThis.serializeHTTP??=function(re){
-    let reDTO=Object.create(null);
-    reDTO.headers={};
-    for(let a in re){
-      if((re[a]===null)||(a=='headers')||(a=='fetcher')||(a=='signal')){continue;}
-      reDTO[a]=re[a];
-      if(typeof a == 'function'){continue;}
-    }
-    let reHeaders=(new Map(re.headers));
-    for(let h of reHeaders){
-      if(typeof h == 'function'){continue;}
-      reDTO.headers[`${h}`.replace(/[^a-zA-Z]+/g,'-').replace(/[-]$/,'')] = reHeaders[`${h}`];
-    }
-    re.headers.forEach((value, key) => {
-        reDTO.headers[`${key}`.replace(/[^a-zA-Z]+/g,'-').replace(/[-]$/,'')]=`${value}`;
-    });
-  return {...reDTO};
-};
+globalThis.serializeHTTP ??= function serializeHTTP(re){
+  const reDTO = {};
+  reDTO.headers = {};
+  for(const a in re){
+      if((re[a]==null)||(a=='headers')||(a=='fetcher')||(a=='signal')){continue;}
+      if(typeof re[a] == 'function'){continue;}
+      reDTO[a] = re[a];
+  }
+  const reHeaders = re.headers;
+  const reHeadersKeys = reHeaders.keys();
+  for(const key of reHeadersKeys){
+      reDTO[key] = reHeaders.get(key);
+  }
+return reDTO;
+}
 
 globalThis.newReadableStream=function(input){
     return new Response(input).body;
