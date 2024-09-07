@@ -204,7 +204,7 @@ globalThis.zfetch = async function zfetch() {
 
 
 
-globalThis.zdecoder = function() {
+globalThis.zdecoder = function zdecoder() {
         globalThis.decoder ??= new TextDecoder();
         globalThis.decoder.zdecode ??= function(raw) {
             try {
@@ -216,9 +216,9 @@ globalThis.zdecoder = function() {
     return globalThis.decoder;
 }
 
-globalThis.zencoder = function() {
+globalThis.zencoder = function zencoder() {
         globalThis.encoder ??= new TextEncoder();
-        globalThis.encoder.zencode ??= function(str) {
+        globalThis.encoder.zencode ??= function zencode(str) {
             try {
                 return globalThis.encoder.encode(str);
             } catch (e) {
@@ -228,7 +228,7 @@ globalThis.zencoder = function() {
     return globalThis.encoder;
 }
 
-globalThis.zgetReader = function(stream) {
+globalThis.zgetReader = function zgetReader(stream) {
     if (!stream) {return;  }
     let r = Object.create(null);
     r.reader = stream.getReader();
@@ -236,7 +236,7 @@ globalThis.zgetReader = function(stream) {
     return r;
 }
 
-globalThis.zread = async function(reader) {
+globalThis.zread = async function zread(reader) {
     if (reader?.almostDone) {
         try {
             reader.reader.releaseLock();
@@ -265,7 +265,7 @@ globalThis.zread = async function(reader) {
     }
 };
 
-globalThis.zatob=function(str){
+globalThis.zatob = function zatob(str){
   str=`${str}`;
   try{
     return atob(str);
