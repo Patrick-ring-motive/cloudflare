@@ -1,5 +1,5 @@
-globalThis.ctxAwaitUntil = function(ctx) {
-    ctx.awaitUntil = function(promise){
+globalThis.ctxAwaitUntil = function ctxAwaitUntil(ctx) {
+    ctx.awaitUntil = function awaitUntil(promise){
         ctx.waitUntil(promise);
         return promise;
     }
