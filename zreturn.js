@@ -22,11 +22,11 @@ function serializeHTTP(re){
 }
 
 
-globalThis.newReadableStream=function(input){
+globalThis.newReadableStream = function newReadableStream(input){
     return new Response(input).body;
 }
 
-globalThis.znewReadableStream=function(input){
+globalThis.znewReadableStream = function znewReadableStream(input){
     try{
         return newReadableStream(input);
     }catch(e){
@@ -34,16 +34,17 @@ globalThis.znewReadableStream=function(input){
     }
 }
 
-globalThis.newArrayBuffer = function(input) {
+globalThis.newArrayBuffer = function newArrayBuffer(input) {
   const buf = new ArrayBuffer(input.length*2);
   const bufView = new Uint16Array(buf);
-  for (let i=0, inputLen=input.length; i<inputLen; i++) {try{
+  const inputLen=input.length;
+  for (let i=0; i !== inputLen; i++) {try{
     bufView[i] = input?.charCodeAt?.(i)||+input[i];
-  }catch(_){continue;}}
+  }catch{continue;}}
   return buf;
 }
 
-globalThis.znewArrayBuffer=function(input){
+globalThis.znewArrayBuffer = function znewArrayBuffer(input){
     try{
         return newArrayBuffer(input);
     }catch(e){
@@ -51,11 +52,11 @@ globalThis.znewArrayBuffer=function(input){
     }
 }
 
-globalThis.responseText=async function(res){
+globalThis.responseText = async function responseText(res){
     return await Response.prototype.text.apply(res);
 };
 
-globalThis.zresponseText=async function(re){
+globalThis.zresponseText = async function zresponseText(re){
     try{
         return await responseText(re);
     }catch(e){
@@ -63,11 +64,11 @@ globalThis.zresponseText=async function(re){
     }
 }
 
-globalThis.responseArrayBuffer=async function(res){
+globalThis.responseArrayBuffer = async function responseArrayBuffer(res){
     return await Response.prototype.arrayBuffer.apply(res);
 };
 
-globalThis.zresponseArrayBuffer=async function(re){
+globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(re){
     try{
         return await responseArrayBuffer(re);
     }catch(e){
