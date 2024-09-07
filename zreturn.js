@@ -1,12 +1,12 @@
 
 globalThis.serializeHTTP ??= function serializeHTTP(re){
-    const reDTO = {};
-    reDTO.headers = Object.fromEntries(re.headers);
-    for(const a in re){
-        if((re[a]==null)||(a=='headers')||(a=='fetcher')||(a=='signal')){continue;}
-        if(typeof re[a] == 'function'){continue;}
-        reDTO[a] = re[a];
-    }
+  const reDTO = {};
+  reDTO.headers = Object.fromEntries(re.headers);
+  for(const a in re){
+      if(re[a] == null || typeof re[a] === 'function'){continue;}
+      if(~String(a).search(/headers|fetcher|signal/)){continue;}
+      reDTO[a] = re[a];
+  }
   return reDTO;
 }
 
