@@ -15,6 +15,13 @@ globalThis.serializeHTTP ??= function serializeHTTP(re){
 return reDTO;
 }
 
+function serializeHTTP(re){
+  const reDTO = Object.create(re);
+  reDTO.headers = Object.fromEntries(re.headers);;
+  return reDTO;
+}
+
+
 globalThis.newReadableStream=function(input){
     return new Response(input).body;
 }
