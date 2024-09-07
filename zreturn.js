@@ -77,18 +77,18 @@ globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(re){
 }
 
 
-globalThis.appendZResponseMethods=function(res){
+globalThis.appendZResponseMethods = function appendZResponseMethods(res){
     res ??= new Response(`${res}`);
-    res.zbody = function(){
+    res.zbody = function zbody(){
         res.body ??= znewReadableStream(`${res?.body}`);
-            res.body.zgetReader ??= function(){
+            res.body.zgetReader ??= function zgetReader(){
                 try{
-                    let r = Object.create(null);
+                    const r = Object.create(null);
                     r.reader = res.body.getReader();
                     r.almostDone = false;
                     return r;
                 }catch(e){
-                    let r = Object.create(null);
+                    const r = Object.create(null);
                     r.reader = znewReadableStream(e.message).getReader();
                     r.almostDone = false;
                     return r;
@@ -96,14 +96,14 @@ globalThis.appendZResponseMethods=function(res){
             }
         return res.body
     }
-    res.ztext = async function(){
+    res.ztext = async function ztext(){
         try{
             return await res.text();
         }catch(e){
             return e.message;
         }
     }
-    res.zarrayBuffer = async function(){
+    res.zarrayBuffer = async function zarrayBuffer(){
         try{
             return await res.arrayBuffer();
         }catch(e){
@@ -112,7 +112,7 @@ globalThis.appendZResponseMethods=function(res){
     }
     return res;
 }
-globalThis.zfetch = async function() {
+globalThis.zfetch = async function zfetch() {
     let res;
     try {
         return appendZResponseMethods(await fetch.apply(this,arguments));
@@ -129,7 +129,7 @@ globalThis.zfetch = async function() {
     }
   };
 
-  globalThis.znewRequest=function(input,options){
+  globalThis.znewRequest = function znewRequest(input,options){
     let req;
     try{
         if(!options){
@@ -164,7 +164,7 @@ globalThis.zfetch = async function() {
     return req;
   }
 
-  globalThis.znewResponse=function(body,options){
+  globalThis.znewResponse = function znewResponse(body,options){
     let res;
     try{
         if(!options){
@@ -190,7 +190,7 @@ globalThis.zfetch = async function() {
     return appendZResponseMethods(res);
   }
 
-  globalThis.zfetchText = async function(){
+  globalThis.zfetchText = async function zfetchText(){
     try{
         let res = await fetch.apply(this,arguments);
         if(res.status > 399){
