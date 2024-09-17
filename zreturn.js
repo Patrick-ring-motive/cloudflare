@@ -266,3 +266,25 @@ globalThis.zatob = function zatob(str){
     }
   }
 }
+
+
+JSON.zparse=function zparse(){
+    try{
+        return JSON.parse(...arguments);
+    }catch(e){
+        return e;
+    }
+}
+
+JSON.zstringify=function zparse(){
+    try{
+        return JSON.stringify(...arguments);
+    }catch(e){
+        const a = Object.getOwnPropertyNames(e);
+        const obj = {};
+        for(const x of a){
+            obj[x] = e[x];
+        }
+        return JSON.stringify(obj);
+    }
+}
