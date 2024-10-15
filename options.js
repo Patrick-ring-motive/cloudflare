@@ -24,7 +24,7 @@ const tryElse = (tryFn,elseFn) => {
   }
 };
 
-globalThis.ifTry = (bool, then, elseThen) => {
+const ifTry = (bool, then, elseThen) => {
          if (bool) {
              try {
                  if ((typeof bool) == 'function') {
