@@ -16,6 +16,14 @@ const valueError = (fn) => {
   return rtrn;
 };
 
+const tryElse = (tryFn,elseFn) => {
+  try{
+    return tryFn?.();
+  }catch(e){
+    return elseFn?.(e);
+  }
+};
+
 const q = (varFn) => {
   try{
     return varFn?.();
