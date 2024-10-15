@@ -15,3 +15,9 @@ const q = (varFn) => {
     }
   }
 }
+
+const newQ = (...args) => {
+   const fn = args?.shift?.();
+   return fn && new fn(...args);
+};
+
