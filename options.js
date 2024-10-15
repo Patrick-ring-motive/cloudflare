@@ -6,6 +6,16 @@ const tryError = (fn) => {
   }
 };
 
+const valueError = (fn) => {
+  const rtrn = {};
+  try{
+    rtrn.value = fn?.();
+  }catch(e){
+    rtrn.error e;
+  }
+  return rtrn;
+};
+
 const q = (varFn) => {
   try{
     return varFn?.();
