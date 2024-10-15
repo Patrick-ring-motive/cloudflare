@@ -24,6 +24,34 @@ const tryElse = (tryFn,elseFn) => {
   }
 };
 
+globalThis.ifTry = (bool, then, elseThen) => {
+         if (bool) {
+             try {
+                 if ((typeof bool) == 'function') {
+                     if (bool()) {
+                         return then();
+                     } else {
+                         return elseThen();
+                     }
+                 } else {
+                     return then();
+                 }
+             } catch (e) {
+                 if (elseThen) {
+                     return elseThen(e);
+                 } else {
+                     return;
+                 }
+             }
+         } else {
+             if (elseThen) {
+                 return elseThen(e);
+             } else {
+                 return;
+             }
+         }
+     }
+
 const q = (varFn) => {
   try{
     return varFn?.();
