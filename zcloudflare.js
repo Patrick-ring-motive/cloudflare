@@ -325,7 +325,11 @@ globalThis.zdecoder = function zdecoder() {
             try {
                 return globalThis.decoder.decode(raw);
             } catch (e) {
-                return e.message;
+        	try{
+                  return zfromCharCodes(raw);
+		}catch{
+		  return e.message;
+		}
             }
         }
     }
