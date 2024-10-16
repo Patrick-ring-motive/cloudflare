@@ -57,7 +57,7 @@ globalThis.responseArrayBuffer = async function responseArrayBuffer(response) {
 };
 globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(response) {
   try {
-    return await responseArrayBuffer(response);
+    return await responseArrayBuffer(response.clone());
   } catch (e) {
     return znewArrayBuffer(e.message);
   }
@@ -181,13 +181,13 @@ globalThis.znewResponse = function(body, options) {
   try {
     if(!options) {
       try {
-        res = new Response(body);
+        res = new Response(znewReadbleStream(body));
       } catch (e) {
         res = new Response(`${body}`);
       }
     } else {
       try {
-        res = new Response(body, options);
+        res = new Response(znewReadableStream(body), options);
       } catch (e) {
         try {
           res = new Response(`${body}`, options);
@@ -367,7 +367,11 @@ globalThis.zgetReader = function zgetReader(stream) {
   try {
     return getReader(stream);
   } catch (e) {
-    return getReader(znewReadableStream(e.message));
+    try{
+      return getReader(znewReadableStream(stream));
+    }catch{
+      return getReader(znewReadableStream(e.message));
+    }
   }
 }
 globalThis.zread = async function zread(reader) {
