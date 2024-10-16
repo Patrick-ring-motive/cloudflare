@@ -136,7 +136,7 @@ globalThis.responseText = async function responseText(response) {
 };
 globalThis.zresponseText = async function zresponseText(response) {
   try {
-    const reader = zgetReader(res.clone.body);
+    const reader = zgetReader(res.clone().body);
     const txtArr = [];
     while(true) {
           try {
