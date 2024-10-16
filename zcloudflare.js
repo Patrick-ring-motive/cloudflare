@@ -1,4 +1,4 @@
-import {fuzzyMatch} from './fuzz.js';
+//import {fuzzyMatch} from './fuzz.js';
 
 fetch.prototype ??= fetch;
 
@@ -119,19 +119,16 @@ globalThis.appendZResponseMethods=function(res){
 globalThis.zfetch = async function() {
     try {
         return (await fetch.apply(this,arguments));
-        //return appendZResponseMethods(await fetch.apply(this,arguments));
     } catch (e) {
         let code = 569;
         try{
             return (await fetch.call(this,arguments[0]));
-            //return appendZResponseMethods(await fetch.call(this,arguments[0]));
         }catch{
             console.log(e);
             const match = fuzzyMatch(e.message);
             if (match[2] >= 2) {
             code = +match[0] || 569;
         }
-        //return appendZResponseMethods
         return (znewResponse(arguments[0]+'\n'+e.message+'\n'+e.stack, {
             status: code,
             statusText: e.message,
@@ -230,7 +227,6 @@ globalThis.zfetch = async function() {
     }
     res.contentLength = options?.contentLength ?? body?.length 
     return (res);
-    //return appendZResponseMethods(res);
   }
 
   globalThis.znewURL = function znewURL(){
