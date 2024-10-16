@@ -1,4 +1,4 @@
-globalThis.TryCatch = function TryCatch(...fns) {
+globalThis.tryCatch = function tryCatch(...fns) {
   const errors = [];
   for (let fn of fns) {
     try {
@@ -10,70 +10,51 @@ globalThis.TryCatch = function TryCatch(...fns) {
   return { errors };
 };
 
-globalThis.znewRequest = function znewRequest(input, options) {
-  let res;
-  TryCatch((e)=>{
-      if(!options){
-        try{
-          res = new Response(body);
-        }catch{
-          res = new Response(`${body}`);
+globalThis.znewRequest = function znewRequest(input,options){
+    let req;
+    try{
+        if(!options){
+            if(typeof input == 'string'){
+                req = new Request(input);
+            }else{
+                try{
+                    req = new Request(input);
+                }catch(e){
+                    input = serializeHTTP(input);
+                    input.body = e.message;
+                    req = new Request(input);
+                }
+            }
+        }else{
+            try{
+                req = new Request(input,options);
+            }catch(e){
+                try{
+                    req = new Request(input);
+                }catch(_){
+                options = serializeHTTP(options);
+                options.body = e.message;
+                req = new Request(input,options);
+                }
+            }
         }
-      }else{
-        TryCatch(()=>{
-          res = new Response(body,options);
-        },()=>{
-          res = new Response(`${body}`,options);
-        },()=>{
-          res = new Response(`${body}`);
-        });
-      } 
-    },
-    (e) => {new Request(input)},
-    
-    // If that fails, check if input is an object and serialize it
-    (errors) => {
-      input = typeof input === 'string' ? input : serializeHTTP(input);
-      input.body = errors[errors.length - 1].message; // Use the latest error message as body
-      return new Request(input);
-    },
-
-    // If options are provided but fail, try serializing options and retry
-    (errors) => {
-      options = serializeHTTP(options);
-      options.body = errors[errors.length - 1].message; // Use the latest error message as body
-      return new Request(input, options);
-    },
-
-    // Final fallback: create a request with error information in headers
-    (errors) => {
-      const url = input.url || input;
-      return new Request(url, {
-        headers: {
-          "error-message": errors[errors.length - 1].message,
-          redirect: "follow",
-        },
-        redirect: "follow",
-      });
+    }catch(e){
+        const url = input.url||input;
+        req = new Request(url,{headers:{"error-message":e.message,redirect:"follow"},redirect:"follow"});
     }
-  );
-
-  // If TryCatch returns an object containing errors, log or handle them
-  if (result?.errors) {
-    console.log('Errors encountered:', result.errors);
-    // Optionally return the last error-handled request or throw
-    return new Request(input.url || input, { headers: { "error-message": result.lastError.message } });
+    return req;
   }
-
-  return result;
-};
-
+  
+  
+  
 const flattenError = (e)=>{
   const err = {};
   for(const key in e){err[key]=e[key]};
   Object.getOwnPropertyNames(e).forEach(x=>{err[x]=e[x]});
   return err;
 };
+
+
 
 const tryError = (fn) => {
   try{
