@@ -1,8 +1,7 @@
 const flattenError = (e)=>{
   const err = {};
   for(const key in e){err[key]=e[key]};
-  Object.getOwnPropertyNames(e).
-  forEach(x=>{err[x]=e[x]});
+  Object.getOwnPropertyNames(e).forEach(x=>{err[x]=e[x]});
   return err;
 };
 
@@ -19,7 +18,7 @@ const valueError = (fn) => {
   try{
     rtrn.value = fn?.();
   }catch(e){
-    rtrn.error e;
+    rtrn.error = e;
   }
   return rtrn;
 };
