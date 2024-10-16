@@ -1,3 +1,5 @@
+
+
 const flattenError = (e)=>{
   const err = {};
   for(const key in e){err[key]=e[key]};
@@ -31,33 +33,19 @@ const tryElse = (tryFn,elseFn) => {
   }
 };
 
+const callQ = (...args) => args?.[0]?.call?.(...args);
+
 const ifTry = (bool, then, elseThen) => {
-         if (bool) {
-             try {
-                 if ((typeof bool) == 'function') {
-                     if (bool()) {
-                         return then();
-                     } else {
-                         return elseThen();
-                     }
-                 } else {
-                     return then();
-                 }
-             } catch (e) {
-                 if (elseThen) {
-                     return elseThen(e);
-                 } else {
-                     return;
-                 }
-             }
-         } else {
-             if (elseThen) {
-                 return elseThen(e);
-             } else {
-                 return;
-             }
-         }
-     }
+  try {
+    if (callQ(bool) ?? bool) {
+      return then?.();
+    } else {
+      return elseThen?.();
+    }
+  } catch (e) {
+    return elseThen?.(e);
+  }
+};
 
 const q = (varFn) => {
   try{
