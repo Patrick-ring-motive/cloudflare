@@ -108,7 +108,7 @@ globalThis.zfetch = async function zfetch() {
     } catch (e) {
         try{
             return appendZResponseMethods(await fetch.call(this,arguments[0]));
-        }catch(_){
+        }catch{
         console.log(e);
         return appendZResponseMethods(new Response(arguments[0]+'\n'+e.message+'\n'+e.stack, {
             status: 569,
@@ -139,10 +139,10 @@ globalThis.zfetch = async function zfetch() {
             }catch(e){
                 try{
                     req = new Request(input);
-                }catch(_){
-                options = serializeHTTP(options);
-                options.body = e.message;
-                req = new Request(input,options);
+                }catch{
+                    options = serializeHTTP(options);
+                    options.body = e.message;
+                    req = new Request(input,options);
                 }
             }
         }
@@ -165,10 +165,10 @@ globalThis.zfetch = async function zfetch() {
         }else{
             try{
                 res = new Response(body,options);
-            }catch(_){
+            }catch{
                 try{
                     res = new Response(`${body}`,options);
-                }catch(_){
+                }catch{
                     res = new Response(`${body}`);
                 }
             }
@@ -229,7 +229,7 @@ globalThis.zread = async function zread(reader) {
     if (reader?.almostDone) {
         try {
             reader.reader.releaseLock();
-        } catch (e) {}
+        } catch {}
         return {
             value: undefined,
             done: true
@@ -240,7 +240,7 @@ globalThis.zread = async function zread(reader) {
         if (rtrn.done) {
             try {
                 reader.reader.releaseLock();
-            } catch (e) {}
+            } catch {}
         }
         return rtrn;
     } catch (e) {
@@ -255,13 +255,13 @@ globalThis.zread = async function zread(reader) {
 };
 
 globalThis.zatob = function zatob(str){
-  str=`${str}`;
+  str=String(str);
   try{
     return atob(str);
-  }catch(e){
+  }catch{
     try{
       return btoa(str)
-    }catch(e){
+    }catch{
       return str;
     }
   }
@@ -276,15 +276,10 @@ JSON.zparse=function zparse(){
     }
 }
 
-JSON.zstringify=function zparse(){
+JSON.zstringify=function zstringify(){
     try{
         return JSON.stringify(...arguments);
     }catch(e){
-        const a = Object.getOwnPropertyNames(e);
-        const obj = {};
-        for(const x of a){
-            obj[x] = e[x];
-        }
-        return JSON.stringify(obj);
+        return JSON.stringify(flattenError(e));
     }
 }
