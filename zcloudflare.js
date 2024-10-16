@@ -1,6 +1,5 @@
 //import {fuzzyMatch} from './fuzz.js';
-fetch.prototype ??= fetch;
-try{fetch.constructor = fetch}catch(e){console.log(e)}
+fetch.prototype ??= (fetch.constructor = fetch);
 globalThis.newFetch = function newFetch(init) {
   return Object.assign(Object.create(fetch.prototype), init)
 }
