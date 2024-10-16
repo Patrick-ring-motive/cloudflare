@@ -23,6 +23,70 @@ globalThis. objSetProto = function () {
   return Object.setPrototypeOf(...arguments);
 };
 globalThis.create = (proto) => Object.create(proto);
+function assignAll(target, src) {
+  let excepts = ["prototype", "constructor", "__proto__"];
+  let enums = [];
+  let source = src;
+  while (source) {
+    for (let x in source) {
+      try {
+        if (excepts.includes(x)) {
+          continue;
+        }
+        objDefEnum(target, x, source[x]);
+        enums.push(x);
+      } catch (e) {
+        continue;
+      }
+    }
+    for (let key of objectNames(source)) {
+      try {
+        if (enums.includes(key) || excepts.includes(key)) {
+          continue;
+        }
+        objDefProp(target, key, source[key]);
+      } catch {
+        continue;
+      }
+    }
+    for (let key of objectSymbols(source)) {
+      try {
+        if (enums.includes(key) || excepts.includes(key)) {
+          continue;
+        }
+        objDefProp(target, key, source[key]);
+      } catch {
+        continue;
+      }
+    }
+    if (source.entries && source.get && source.set) {
+      try {
+        for (let [key, value] of source.entries()) {
+          try {
+            target.set(key, value);
+          } catch (e) {
+            continue;
+          }
+        }
+      } catch (e) {}
+    }
+    if (source.add && source.keys) {
+      try {
+        for (let key of source.keys()) {
+          try {
+            target.add(key);
+          } catch {
+            continue;
+          }
+        }
+      } catch {}
+    }
+    source = objGetProto(source);
+  }
+  return target;
+}
+
+
 
 fetch.prototype ??= (fetch.constructor = fetch);
 globalThis.newFetch = function newFetch(init) {
