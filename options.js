@@ -7,7 +7,7 @@ globalThis.tryCatch = function tryCatch(...fns) {
       errors.push(err);
     }
   }
-  return { errors };
+  return errors;
 };
 
 globalThis.znewRequest = function znewRequest(input,options){
@@ -26,16 +26,14 @@ globalThis.znewRequest = function znewRequest(input,options){
                 }
             }
         }else{
-            try{
-                req = new Request(input,options);
-            }catch(e){
-                try{
-                    req = new Request(input);
-                }catch(_){
+            tryCatch(()=>{
+               req = new Request(input,options);
+            },()=>{
+               req = new Request(input);
+            },(e){
                 options = serializeHTTP(options);
-                options.body = e.message;
+                options.body = e?.[0]?.message;
                 req = new Request(input,options);
-                }
             }
         }
     }catch(e){
