@@ -389,21 +389,29 @@ globalThis.zfromCharCodes = function zfromCharCodes(arr) {
   }
   return charArr.join``;
 }
+
+function cloneStream(stream){
+  const tees = stream.tee()
+  assignAll(stream,tees[0]);
+  return tees[1];
+}
+
 globalThis.newReadableStream = function(input) {
-  const stream = new Response(input).body;
-  stream.getReader().releaseLock();
-  return stream;
+  return = new Response(input).body;
 }
 globalThis.znewReadableStream = function znewReadableStream() {
   try {
   	const type = String(arguments?.[0]?.constructor?.name);
   	if(type === 'ReadableStream'){
-  		return arguments?.[0].tee()[1];
+  		return cloneStream(arguments?.[0]);
   	}
   	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
   		return newReadableStream(...arguments);
   	}
   	try{
+      if(ReadableStream.from){
+        return ReadableStream.from(...arguments);
+      }
   		return newReadableStream(new Int8Array([...arguments[0]]));
   	}catch(e){
   		return new ReadableStream(...arguments);
