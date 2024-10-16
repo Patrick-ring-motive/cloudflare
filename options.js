@@ -1,3 +1,11 @@
+const flattenError = (e)=>{
+  const err = {};
+  for(const key in e){err[key]=e[key]};
+  Object.getOwnPropertyNames(e).
+  forEach(x=>{err[x]=e[x]});
+  return err;
+};
+
 const tryError = (fn) => {
   try{
     return fn?.();
