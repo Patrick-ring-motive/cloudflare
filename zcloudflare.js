@@ -1,5 +1,6 @@
 //import {fuzzyMatch} from './fuzz.js';
 
+
 fetch.prototype ??= fetch;
 
 globalThis.newFetch = function newFetch(init){
