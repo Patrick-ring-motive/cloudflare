@@ -312,7 +312,7 @@ globalThis.znewReadableStream = function znewReadableStream() {
   		return arguments?.[0].tee();
   	}
   	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
-  		return newReadbleStream(...arguments);
+  		return newReadableStream(...arguments);
   	}
   	try{
   		return newReadableStream(new Int8Array([...aruments[0]]));
