@@ -307,7 +307,18 @@ globalThis.newReadableStream = function(input) {
 }
 globalThis.znewReadableStream = function znewReadableStream() {
   try {
-    return new ReadableStream(...arguments);
+  	const type = String(arguments?.[0]?.constructor?.name);
+  	if(type === 'ReadableStream'){
+  		return arguments?.[0].tee();
+  	}
+  	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
+  		return newReadbleStream(...arguments);
+  	}
+  	try{
+  		return newReadableStream(new Int8Array([...aruments[0]]));
+  	}catch(e){
+  		return new ReadableStream(...arguments);
+  	}
   } catch (e) {
     return newReadableStream(e.message);
   }
