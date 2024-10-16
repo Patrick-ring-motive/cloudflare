@@ -35,7 +35,7 @@ globalThis.znewRequest = function znewRequest(input,options){
                req = new Request(input,options);
             },()=>{
                req = new Request(input);
-            },(e){
+            },(e)=>{
                 options = serializeHTTP(options);
                 options.body = e?.[0]?.message;
                 req = new Request(input,options);
