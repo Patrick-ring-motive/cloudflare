@@ -410,6 +410,7 @@ globalThis.zcontrollerClose = function zcontrollerClose(controller) {
 }
 globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
   const req = res instanceof Request;
+  res = res.clone();
   try {
     options.timeout ??= 25000;
     options.encode ??= true;
