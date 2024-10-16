@@ -301,7 +301,9 @@ globalThis.zfromCharCodes = function zfromCharCodes(arr) {
   return charArr.join``;
 }
 globalThis.newReadableStream = function(input) {
-  return new Response(input).body;
+  const stream = new Response(input).body;
+  stream.getReader().releaseLock();
+  return stream;
 }
 globalThis.znewReadableStream = function znewReadableStream() {
   try {
