@@ -136,7 +136,20 @@ globalThis.responseText = async function responseText(response) {
 };
 globalThis.zresponseText = async function zresponseText(response) {
   try {
-    return await responseText(response.clone());
+    const reader = zgetReader(res.clone.body);
+    const txtArr = [];
+    while(true) {
+          try {
+            const chunk = await (zread(reader));
+            if(chunk.done) {
+              break;
+            }
+            txtArr.push(zdecoder().zdecode(chunk.value));
+          } catch {
+            break;
+          }
+        }
+    return txtArr.join``;
   } catch (e) {
     return e.message;
   }
@@ -332,7 +345,7 @@ globalThis.zfetchText = async function() {
     if(res.status > 399) {
       return res.statusText;
     }
-    const resText = await res.text();
+    const resText = await responseText(res);
     res.zresBody = () => resText;
     return resText;
   } catch (e) {
