@@ -282,6 +282,28 @@ globalThis.ztoCharCodes = function ztoCharCodes(strng) {
     return new Uint8Array(charCodeArr);
 }
 
+globalThis.fromCharCodes = function fromCharCodes(arr){
+    const charArr = [];
+    const arr_length = arr.length;
+    for (let i = 0; i < arr_length; i++) {
+        const char = String.fromCharCode(arr[i]);
+        charArr.push(char);
+    }
+    return charArr.join``;
+}
+
+globalThis.zfromCharCodes = function zfromCharCodes(arr){
+    try{arr = [...arr]}
+    catch{arr = [...arguments]}
+    const charArr = [];
+    const arr_length = arr.length;
+    for (let i = 0; i < arr_length; i++) {try{
+        const char = String.fromCharCode(arr[i]);
+        charArr.push(char);
+    }catch{continue;}}
+    return charArr.join``;
+}
+
 globalThis.newReadableStream=function(input){
     return new Response(input).body;
 }
