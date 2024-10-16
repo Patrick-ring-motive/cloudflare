@@ -1,4 +1,4 @@
-//import {fuzzyMatch} from './fuzz.js';
+import {fuzzyMatch} from './fuzz.js';
 fetch.prototype ??= (fetch.constructor = fetch);
 globalThis.newFetch = function newFetch(init) {
   return Object.assign(Object.create(fetch.prototype), init)
@@ -47,7 +47,7 @@ globalThis.responseText = async function responseText(response) {
 };
 globalThis.zresponseText = async function zresponseText(response) {
   try {
-    return await responseText(response);
+    return await responseText(response.clone());
   } catch (e) {
     return e.message;
   }
@@ -309,7 +309,7 @@ globalThis.znewReadableStream = function znewReadableStream() {
   try {
   	const type = String(arguments?.[0]?.constructor?.name);
   	if(type === 'ReadableStream'){
-  		return arguments?.[0].tee();
+  		return arguments?.[0].tee()[1];
   	}
   	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
   		return newReadableStream(...arguments);
@@ -424,7 +424,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
           done: false
         };
         timeoutHandle = setTimeout(() => {
-          console.log(`Stream timed out after ${timeout}ms`);
+          console.log(`Stream timed out after ${options.timeout}ms`);
           zcontrollerClose(controller);
           resolveStreamProcessed();
         }, options.timeout);
