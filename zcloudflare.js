@@ -441,7 +441,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
       }
     });
     streamProcessed.then(() => {
-      tryReleaseLock(reader.reader);
+      tryReleaseLock(stream,reader.reader);
       clearTimeout(timeoutHandle);
     });
     ctx?.waitUntil?.(streamProcessed);
