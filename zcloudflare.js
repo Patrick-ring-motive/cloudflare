@@ -18,9 +18,7 @@ globalThis.serializeHTTP ??= function serializeHTTP(re){
     return reDTO;
 }
 
-globalThis.newReadableStream=function(input){
-    return new Response(input).body;
-}
+
 
 globalThis.newArrayBuffer = function(input) {
   var buf = new ArrayBuffer(input.length*2);
@@ -250,21 +248,36 @@ globalThis.zfetch = async function() {
 
 
 
-String.prototype.toCharCodes = function toCharCodes() {
-    let charCodeArr = [];
-    for (let i = 0; i < this.length; i++) {
-        const code = this.charCodeAt(i);
+globalThis.toCharCodes = function toCharCodes(str) {
+    const charCodeArr = [];
+    const str_length = str.length;
+    for (let i = 0; i < str_length; i++) {
+        const code = str.charCodeAt(i);
         charCodeArr.push(code);
     }
     return new Uint8Array(charCodeArr);
 }
 
+globalThis.ztoCharCodes = function ztoCharCodes(strng) {
+    const str = String(strng);
+    const charCodeArr = [];
+    const str_length = str.length;
+    for (let i = 0; i < str_length; i++) {try{
+        const code = str.charCodeAt(i);
+        charCodeArr.push(code);
+    }catch{continue;}}
+    return new Uint8Array(charCodeArr);
+}
+
+globalThis.newReadableStream=function(input){
+    return new Response(input).body;
+}
 
 globalThis.znewReadableStream = function znewReadableStream(){
   try{
     return new ReadableStream(...arguments);
   }catch(e){
-    return new Response(e.message).body;
+    return newReadableStream(e.message);
   }
 }
 
@@ -291,7 +304,11 @@ globalThis.zencoder = function zencoder() {
             try {
                 return globalThis.encoder.encode(str);
             } catch (e) {
-                return e.message.toCharCodes();
+		try{
+                  return ztoCharCodes(str);
+		}catch{
+		  return ztoCharCodes(e.message);
+		}
             }
         }
     }
