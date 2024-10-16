@@ -139,15 +139,11 @@ globalThis.zresponseText = async function zresponseText(response) {
     const reader = zgetReader(res.clone().body);
     const txtArr = [];
     while(true) {
-          try {
             const chunk = await (zread(reader));
-            if(chunk.done) {
+            if(chunk?.done ?? !chunk) {
               break;
             }
             txtArr.push(zdecoder().zdecode(chunk.value));
-          } catch {
-            break;
-          }
         }
     return txtArr.join``;
   } catch (e) {
