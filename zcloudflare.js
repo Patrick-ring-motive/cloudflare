@@ -397,7 +397,7 @@ function cloneStream(stream){
 }
 
 globalThis.newReadableStream = function(input) {
-  return = new Response(input).body;
+  return new Response(input).body;
 }
 globalThis.znewReadableStream = function znewReadableStream() {
   try {
