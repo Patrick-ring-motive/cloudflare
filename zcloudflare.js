@@ -1,4 +1,29 @@
 import {fuzzyMatch} from './fuzz.js';
+
+globalThis. objDoProp = function (obj, prop, def, enm, mut) {
+  return Object.defineProperty(obj, prop, {
+    value: def,
+    writable: mut,
+    enumerable: enm,
+    configurable: mut,
+  });
+};
+globalThis. objDefProp = (obj, prop, def) => objDoProp(obj, prop, def, false, true);
+globalThis. objDefEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, true);
+globalThis. objFrzProp = (obj, prop, def) => objDoProp(obj, prop, def, false, false);
+globalThis. objFrzEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, false);
+globalThis. objectNames = (x) => Object.getOwnPropertyNames(x);
+globalThis. objectSymbols = function () {
+  return Object.getOwnPropertySymbols(...arguments);
+};
+globalThis. objGetProto = function () {
+  return Object.getPrototypeOf(...arguments);
+};
+globalThis. objSetProto = function () {
+  return Object.setPrototypeOf(...arguments);
+};
+globalThis.create = (proto) => Object.create(proto);
+
 fetch.prototype ??= (fetch.constructor = fetch);
 globalThis.newFetch = function newFetch(init) {
   return Object.assign(Object.create(fetch.prototype), init)
