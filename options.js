@@ -1,10 +1,15 @@
 globalThis.tryCatch = function tryCatch(...fns) {
   const errors = [];
-  for (let fn of fns) {
+  const fns_length = fns.length;
+  const last = fns_length-1;
+  for (let i = 0; i !== fns_length; i++) {
     try {
-      return fn?.(errors);
+      return fns[i]?.(errors);
     } catch (err) {
       errors.push(err);
+      if(i === last){
+        throw err;
+      }
     }
   }
   return errors;
