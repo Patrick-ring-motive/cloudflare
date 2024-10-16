@@ -315,7 +315,7 @@ globalThis.znewReadableStream = function znewReadableStream() {
   		return newReadableStream(...arguments);
   	}
   	try{
-  		return newReadableStream(new Int8Array([...aruments[0]]));
+  		return newReadableStream(new Int8Array([...arguments[0]]));
   	}catch(e){
   		return new ReadableStream(...arguments);
   	}
