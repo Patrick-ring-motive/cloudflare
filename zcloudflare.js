@@ -469,7 +469,8 @@ globalThis.znewReadableStream = function znewReadableStream() {
   try {
   	const type = String(arguments?.[0]?.constructor?.name);
   	if(type === 'ReadableStream'){
-  		return cloneStream(arguments?.[0]);
+  		return arguments[0];
+      //return cloneStream(arguments[0]);
   	}
     if(arguments?.[0]?.start){
       try{
@@ -580,7 +581,7 @@ globalThis.zcontrollerClose = function zcontrollerClose(controller) {
 }
 globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
   const req = res instanceof Request;
-  res = res.clone();
+  //res = res.clone();
   try {
     options.timeout ??= 25000;
     options.encode ??= true;
