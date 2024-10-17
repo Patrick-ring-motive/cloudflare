@@ -389,7 +389,7 @@ function cloneStream(stream){
   return tees[1];
 }
 
-globalThis.newResponseStream = function newResponseStream(data){
+globalThis.makeReadableStream = function makeReadableStream(data){
     const dat = [data];
     let nextChunk = ()=>dat.shift();
     if(data[Symbol.iterator]){
@@ -421,11 +421,12 @@ globalThis.newResponseStream = function newResponseStream(data){
       }
     let value = dataChunk.value;
     if(Number.isInteger(value)){
-      value = new Int32Array([value]);
+      value = new Uint32Array([value]);
     }else if(value?.every?.(x=>Number.isInteger(x))){
-              value = new Int32Array([...value]);
+              value = new Uint32Array([...value]);
             }
-    const chunk = await new Response(value).bytes();
+        const response = new Response(value);
+        const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
     controller.enqueue(chunk);
       }catch{
           break;
@@ -466,7 +467,7 @@ globalThis.znewReadableStream = function znewReadableStream() {
       if(ReadableStream.from){
         return ReadableStream.from(...arguments);
       }
-  		return newResponseStream(arguments);
+  		return makeReadableStream(arguments);
   	}catch(e){
       console.log(e,...arguments);
   		return new ReadableStream(...arguments);
