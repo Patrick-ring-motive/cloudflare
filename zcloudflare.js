@@ -90,7 +90,9 @@ function assignAll(target, src) {
 
 fetch.prototype ??= (fetch.constructor = fetch);
 globalThis.newFetch = function newFetch(init) {
-  return Object.assign(Object.create(fetch.prototype), init)
+  const fech = Object.assign(Object.create(fetch.prototype), init);
+  fech.constructor = fetch;
+  return fech;
 }
 globalThis.serializeHTTP ??= function serializeHTTP(re) {
   const reDTO = newFetch({
