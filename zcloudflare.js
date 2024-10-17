@@ -1,736 +1,345 @@
+import './zreturn.js';
+import './base.js';
+import './static.js';
+import './injects.js';
 import {fuzzyMatch} from './fuzz.js';
 
-globalThis. objDoProp = function (obj, prop, def, enm, mut) {
-  return Object.defineProperty(obj, prop, {
-    value: def,
-    writable: mut,
-    enumerable: enm,
-    configurable: mut,
-  });
+export default {
+  fetch(request, env, ctx) {
+    let response = zonRequest(request, env, ctx);
+    ctx.waitUntil(response)
+    return response
+  },
+  async scheduled(event, env, ctx) {
+    let response = zonRequest(event, env, ctx);
+    ctx?.waitUntil?.(response)
+    return response
+  },
 };
-globalThis. objDefProp = (obj, prop, def) => objDoProp(obj, prop, def, false, true);
-globalThis. objDefEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, true);
-globalThis. objFrzProp = (obj, prop, def) => objDoProp(obj, prop, def, false, false);
-globalThis. objFrzEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, false);
-globalThis. objectNames = (x) => Object.getOwnPropertyNames(x);
-globalThis. objectSymbols = function () {
-  return Object.getOwnPropertySymbols(...arguments);
-};
-globalThis. objGetProto = function () {
-  return Object.getPrototypeOf(...arguments);
-};
-globalThis. objSetProto = function () {
-  return Object.setPrototypeOf(...arguments);
-};
-globalThis.create = (proto) => Object.create(proto);
-function assignAll(target, src) {
-  let excepts = ["prototype", "constructor", "__proto__"];
-  let enums = [];
-  let source = src;
-  while (source) {
-    for (let x in source) {
-      try {
-        if (excepts.includes(x)) {
-          continue;
-        }
-        objDefEnum(target, x, source[x]);
-        enums.push(x);
-      } catch (e) {
-        continue;
-      }
-    }
-    for (let key of objectNames(source)) {
-      try {
-        if (enums.includes(key) || excepts.includes(key)) {
-          continue;
-        }
-        objDefProp(target, key, source[key]);
-      } catch {
-        continue;
-      }
-    }
-    for (let key of objectSymbols(source)) {
-      try {
-        if (enums.includes(key) || excepts.includes(key)) {
-          continue;
-        }
-        objDefProp(target, key, source[key]);
-      } catch {
-        continue;
-      }
-    }
-    if (source.entries && source.get && source.set) {
-      try {
-        for (let [key, value] of source.entries()) {
-          try {
-            target.set(key, value);
-          } catch (e) {
-            continue;
-          }
-        }
-      } catch (e) {}
-    }
-    if (source.add && source.keys) {
-      try {
-        for (let key of source.keys()) {
-          try {
-            target.add(key);
-          } catch {
-            continue;
-          }
-        }
-      } catch {}
-    }
-    source = objGetProto(source);
-  }
-  return target;
-}
+
+globalThis.hostMap = createHostMap({
+  "default": ["developer.mozilla.org", "developer.mozilla.org"],
+  "git-tdn.typescripts.org": ["raw.githubusercontent.com","raw.githubusercontent.com"]
+});
 
 
 
-fetch.prototype ??= (fetch.constructor = fetch);
-globalThis.newFetch = function newFetch(init) {
-  const fech = Object.assign(Object.create(fetch.prototype), init);
-  fech.constructor = fetch;
-  return fech;
-}
-globalThis.serializeHTTP ??= function serializeHTTP(re) {
-  const reDTO = newFetch({
-    headers: Object.fromEntries(re.headers)
-  });
-  for(const a in re) {
-    if(re[a] == null || typeof re[a] === 'function') {
-      continue;
-    }
-    if(~String(a).search(/headers|fetcher|signal/)) {
-      continue;
-    }
-    reDTO[a] = re[a];
-  }
-  return reDTO;
-}
-globalThis.newArrayBuffer = function(input) {
-  const buf = new ArrayBuffer(input.length * 2);
-  const bufView = new Uint16Array(buf);
-  for(let i = 0, inputLen = bufView.length; i !== inputLen; i++) {
-    bufView[i] = input?.charCodeAt?.(i) || +input[i];
-  }
-  return buf;
-}
-globalThis.znewArrayBuffer = function(input) {
-  try {
-    const buf = new ArrayBuffer(input.length * 2);
-    const bufView = new Uint16Array(buf);
-    for(let i = 0, inputLen = bufView.length; i !== inputLen; i++) {
-      try {
-        bufView[i] = input?.charCodeAt?.(i) || +input[i];
-      } catch {
-        continue;
-      }
-    }
-    return buf;
-  } catch (e) {
-    console.log(e,...arguments);
-    return newArrayBuffer(e.message);
-  }
-}
-globalThis.responseText = async function responseText(response) {
-  return await response.text();
-};
-globalThis.zresponseText = async function zresponseText(response) {
-  try {
-    const reader = zgetReader(response.clone().body);
-    const txtArr = [];
-    while(true) {
-      try{
-            const chunk = await zread(reader);
-            if(chunk?.done ?? !chunk) {
-              break;
-            }
-            txtArr.push(zdecoder().zdecode(chunk?.value));
-          }catch(e){
-            console.log(e,...arguments);
-            txtArr.push(`/*${e.message}*/`);
-          }
-    }
-    return txtArr.join``;
-  } catch (e) {
-    console.log(e,...arguments);
-    return String(e?.message);
-  }
-};
-globalThis.responseArrayBuffer = async function responseArrayBuffer(response) {
-  return await response.arrayBuffer();
-};
-globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(response) {
-  try {
-    return await responseArrayBuffer(response.clone());
-  } catch (e) {
-    console.log(e,...arguments);
-    return znewArrayBuffer(String(e?.message));
-  }
-};
-globalThis.zfetch = async function() {
-  try {
-    return (await fetch.apply(this, arguments));
-  } catch (e) {
-    let code = 569;
+
+async function zonRequest(request, env, ctx) {
     try {
-      return (await fetch.call(this, arguments[0]));
-    } catch {
-      console.log(e,...arguments);
+      request = await limitResponse(request,ctx,25000);
+      return await onRequest(request, env, ctx);
+  } catch (e) {
+      let code = 569;
+      console.log(e);
       const match = fuzzyMatch(e.message);
-      if(match[2] >= 2) {
+      if (match[2] >= 2) {
         code = +match[0] || 569;
       }
-      return (znewResponse(arguments[0] + '\n' + e?.message + '\n' + e?.stack, {
-        status: code,
-        statusText: e?.message,
-        headers: {
-          "Content-Type": "text/html"
-        }
-      }));
-    }
+      return znewResponse(arguments[0]+'\n'+e.message+'\n'+e.stack, {
+          status: code,
+          statusText: e.message
+      });
   }
-};
-globalThis.znewRequest = function(input, options) {
-  let req;
-  try {
-    if(!options) {
-      if(typeof input == 'string') {
-        req = new Request(input);
-      } else {
-        try {
-          req = new Request(input);
-        } catch (e) {
-          console.log(e,...arguments);
-          input = serializeHTTP(input);
-          input.body = e.message;
-          req = new Request(input);
-        }
-      }
-    } else {
-      try {
-        req = new Request(input, options);
-      } catch (e) {
-        try {
-          req = new Request(input);
-        } catch {
-          console.log(e,...arguments);
-          options = serializeHTTP(options);
-          options.body = e.message;
-          req = new Request(input, options);
-        }
-      }
-    }
-  } catch (e) {
-    console.log(e,...arguments);
-    const url = input.url || input;
-    req = new Request(url, {
-      headers: {
-        "error-message": e.message,
-        redirect: "follow",
-        "Content-Type": "text/html"
-      },
-      redirect: "follow"
-    });
-  }
-  return req;
-}
-globalThis.znewResponse = function znewResponse(body, options) {
-  let res;
-  try {
-    if(/^(101|204|205|304)$/.test(String(options?.status))){
-      return new Response(null,options);
-    }
-    if(!options) {
-      try {
-        if(/^(101|204|205|304)$/.test(String(body?.status))){
-          return new Response(null,body);
-        }
-        res = new Response(znewReadbleStream(body));
-      } catch (e) {
-        console.log(e,...arguments);
-        res = new Response(`${body}`);
-      }
-    } else {
-      try {
-        res = new Response(znewReadableStream(body), options);
-      } catch (e) {
-        console.log(e,...arguments);
-        try {
-          res = new Response(`${body}`, options);
-        } catch (e) {
-          console.log(e,...arguments);
-          try {
-            console.log(e,...arguments);
-            res = znewResponse(`${body}`, {
-              headers: {
-                "error-message": e.message,
-                redirect: "follow",
-                "Content-Type": "text/html"
-              },
-              redirect: "follow"
-            });
-          } catch (e) {
-            console.log(e, ...arguments);
-          }
-        }
-      }
-    }
-  } catch (e) {
-    console.log(e,...arguments);
-    res = new Response(e.message, {
-      status: 569,
-      statusText: e.message,
-      headers: {
-        "error-message": e.message,
-        redirect: "follow",
-        "Content-Type": "text/html"
-      }
-    });
-  }
-  res.contentLength = options?.contentLength ?? body?.length
-  return (res);
-}
-globalThis.znewURL = function znewURL() {
-  try {
-    return new URL(...arguments);
-  } catch (e) {
-    console.log(e,...arguments);
-    try {
-      return new URL(arguments[0]);
-    } catch {
-      try {
-        return new URL(`https://${arguments[0]}`);
-      } catch {
-        return new URL(`${e.name}://`);
-      }
-    }
-  }
-}
-globalThis.zfetchText = async function() {
-  try {
-    let res = await fetch.apply(this, arguments);
-    if(res.status > 399) {
-      return res.statusText;
-    }
-    const resText = await responseText(res);
-    res.zresBody = () => resText;
-    return resText;
-  } catch (e) {
-    console.log(e,...arguments);
-    return e?.message;
-  }
-}
-globalThis.toCharCodes = function toCharCodes(str) {
-  const charCodeArr = [];
-  const str_length = str.length;
-  for(let i = 0; i < str_length; i++) {
-    const code = str.charCodeAt(i);
-    charCodeArr.push(code);
-  }
-  return new Uint8Array(charCodeArr);
-}
-globalThis.ztoCharCodes = function ztoCharCodes(strng) {
-  const str = String(strng);
-  const charCodeArr = [];
-  const str_length = str.length;
-  let err;
-  for(let i = 0; i < str_length; i++) {
-    try {
-      const code = str.charCodeAt(i);
-      charCodeArr.push(code);
-    } catch(e) {
-      err = e;
-      continue;
-    }
-  }
-  if(err){
-    console.log(err,...arguments);
-  }
-  return new Uint8Array(charCodeArr);
-}
-globalThis.fromCharCodes = function fromCharCodes(arr) {
-  const charArr = [];
-  const arr_length = arr.length;
-  for(let i = 0; i < arr_length; i++) {
-    const char = String.fromCharCode(arr[i]);
-    charArr.push(char);
-  }
-  return charArr.join``;
-}
-globalThis.zfromCharCodes = function zfromCharCodes(arr) {
-  try {
-    arr = [...arr]
-  } catch(e) {
-    console.log(e,...arguments);
-    arr = [...arguments]
-  }
-  const charArr = [];
-  const arr_length = arr.length;
-  let err;
-  for(let i = 0; i < arr_length; i++) {
-    try {
-      const char = String.fromCharCode(arr[i]);
-      charArr.push(char);
-    } catch(e) {
-      err = e;
-      continue;
-    }
-  }
-  if(err){
-    console.log(err,...arguments);
-  }
-  return charArr.join``;
 }
 
-function cloneStream(stream){
-  const tees = stream.tee()
-  assignAll(stream,tees[0]);
-  return tees[1];
-}
+let cacheEnabled = false;
+cacheEnabled = true;
 
-globalThis.makeReadableStream = function makeReadableStream(data){
-    const dat = [data];
-    let nextChunk = ()=>dat.shift();
-    if(data[Symbol.iterator]){
-      const iter = data[Symbol.iterator]();
-      nextChunk = ()=>iter.next();
-    }else if(data[Symbol.asyncIterator]){
-      nextChunk = async ()=>await data[Symbol.asyncIterator]().next();
-    }else if(data.next){
-      nextChunk = ()=>data.next();
-    }else if(data.read){
-      nextChunk = ()=>data.read();
-    }else if(data.length){
-      const iter = [][Symbol.iterator].call(data);
-      nextChunk = ()=>iter.next();
-    }else if(arguments.length>1){
-      const iter = [][Symbol.iterator].call(arguments);
-      nextChunk = ()=>iter.next();
+async function onRequest(request, env, ctx) {
+  let cache = 1;
+  if(!cacheEnabled || /cache=false/.test(request.url)||/cache=false/.test(request.headers.get('referer'))){
+    cache = new Date().getTime();
+  }
+  let pathmode = false;
+  let refpathmode = false;
+  if(`${request.headers.get('referer')}`.includes('path=')){
+    refpathmode = true;
+  }
+  if(request.url.includes('path=')){
+    const incomingURL = znewURL(request?.url);
+    const path = incomingURL?.searchParams?.get?.('path');
+    if(path){
+      (incomingURL??{}).pathname = zdecodeURIComponent(path);
+      request = znewRequest(`${incomingURL}`,request);
+      pathmode = true;
     }
-    let resolveStreamProcessed;
-    const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
+  }
+  const requestURL = request.url.split('?')[0].split('#')[0].toLowerCase();
+  //console.log(requestURL)
+  if(~requestURL.search(/sw\.js$/i)){
+    return znewResponse((await zfetch(`https://raw.githubusercontent.com/Patrick-ring-motive/service-worker-example/refs/heads/main/sw.js?${new Date().getTime()}`)).body,{headers:{"Content-Type":"text/javascript"}});
+  }
+  if(~requestURL.search(/sw\.html$/i)){
+    return znewResponse(`<script src="sw.js?${cache}"/>`,{headers:{"Content-Type":"text/html"}});
+  }
+  if(~requestURL.search(/blackjack\.css/i)){
+    return znewResponse((await zfetch(`https://raw.githubusercontent.com/Patrick-ring-motive/mdn/refs/heads/main/blackjack.css?${cache}`)).body,{headers:{"Content-Type":"text/css"}});
+  }
+  if(~requestURL.search(/hookers\.js/i)){
+    return znewResponse((await zfetch(`https://raw.githubusercontent.com/Patrick-ring-motive/mdn/refs/heads/main/hookers.js?${cache}`)).body,{headers:{"Content-Type":"text/javascript"}});
+  }
+  if(~requestURL.search(/indexFetch\.js/i)){
+    return znewResponse((await zfetch(`https://raw.githubusercontent.com/Patrick-ring-motive/mdn/refs/heads/main/files/indexFetch.js?${cache}`)).body,{headers:{"Content-Type":"text/javascript"}});
+  }
+  if(~requestURL.search(/link-resolver\.js/i)){
+    let linkRes = znewResponse((await zfetch(`https://raw.githubusercontent.com/Patrick-ring-motive/mdn/refs/heads/main/files/link-resolver.js?${cache}`)).body,{headers:{"Content-Type":"text/javascript"}});
+    if(refpathmode){
+      const linkResBody = await zresponseText(linkRes);
+      linkRes = znewResponse(linkResBody.replaceAll('a[href','[href'),linkRes);
+    }
+    return linkRes;
+  }
   
-    const stream = new ReadableStream({
-    async start(controller){
-    while(true){
-      try{
-      const dataChunk = await nextChunk();
-      if(dataChunk?.done || !dataChunk){
-        break;
-      }
-    let value = dataChunk.value;
-    if(Number.isInteger(value)){
-      value = new Uint32Array([value]);
-    }else if(value?.every?.(x=>Number.isInteger(x))){
-              value = new Uint32Array([...value]);
-            }
-        const response = new Response(value);
-        const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
-    controller.enqueue(chunk);
-      }catch{
-          break;
+  let staticRes = checkStatic(request);
+  if(staticRes){return staticRes;}
+  let url = new URL(request.url);
+  const raw = `https://raw.githubusercontent.com/Patrick-ring-motive/mdn/main/files${`${url.pathname.toLowerCase()}`.replace(/\/docs/i,'')}`;
+  const benderPromise = zfetchText(`${raw}/bender.xjs?${cache}`);
+  const fryPromise = zfetchText(`${raw}/fry.js?${cache}`);
+  let workerHost = url.host;
+  if(~request.url.search(/hostname=/i)){
+    url.host = zdecodeURIComponent([...request.url.split(/hostname=/i)].pop().split(/\?|#/)[0]);
+  }else {
+    const referer = String(zheadersGet(request.headers,'referer'));  
+    if(!~workerHost.search(/^git-tdn/i) && ~referer.search(/hostname=/i)){
+      url.host = zdecodeURIComponent(referer.split(/hostname=/i)[1].split(/\?|#|&/)[0]);
+    }else{
+      url.host = getNewHost(request);
+    }
+  }
+  let req = znewRequest(url.toString(), request);
+  req = addRequestHeaders(url, workerHost, request);
+  let res = await zfetch(req);
+  res = await limitResponse(res,ctx,25000);
+ 
+  if (res.status > 399) {
+    const alturl = `${raw}/index.md`;
+    res = await zfetch(alturl);
+    let otherResources='';
+    if(res.ok){
+      let data = JSON.zparse(await zresponseText(res));
+      if(data.resources){
+        const dataResources = data.resources;
+        const resources = [];
+        const data_resources_length = data.resources.length;
+        for(let i = 0;i !== data_resources_length;i++){
+          resources.push(zfetchText(dataResources[i]));
         }
-    }
-    controller.close();
-    resolveStreamProcessed();
-  }
-});
-  streamProcessed.then(() => {
-      tryReleaseLock(stream);
-  });
-  return stream;
-}
-
-globalThis.newReadableStream = function(input) {
-  return new Response(input).body;
-}
-
-globalThis.znewReadableStream = function znewReadableStream() {
-  try {
-  	const type = String(arguments?.[0]?.constructor?.name);
-  	if(type === 'ReadableStream'){
-  		return arguments[0];
-      //return cloneStream(arguments[0]);
-  	}
-    if(arguments?.[0]?.start){
-      try{
-        return new ReadableStream(...arguments);
-      }catch(e){
-        console.log(e,...arguments);
+        const allResources = (await Promise.all(resources)).map((x,i)=>[dataResources[i],btoa(zencodeURIComponent(x))]);
+        otherResources = `<script type="resources">${JSON.zstringify(allResources)}</script>`;
       }
-    }
-  	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
-  		return newReadableStream(...arguments);
-  	}
-  	try{
-      if(ReadableStream.from){
-        return ReadableStream.from(...arguments);
-      }
-  		return makeReadableStream(arguments);
-  	}catch(e){
-      console.log(e,...arguments);
-  		return new ReadableStream(...arguments);
-  	}
-  } catch (e) {
-    console.log(e,...arguments);
-    return newReadableStream(e?.message);
-  }
-}
-globalThis.zdecoder = function zdecoder() {
-  if(!globalThis.decoder) {
-    globalThis.decoder = new TextDecoder();
-    globalThis.decoder.zdecode = function zdecode(raw) {
-      try {
-        return globalThis.decoder.decode(raw);
-      } catch (e) {
-        console.log(e,...arguments);
-        try {
-          return zfromCharCodes(raw);
-        } catch {
-          return e?.message;
-        }
-      }
-    }
-  }
-  return globalThis.decoder;
-}
-globalThis.zencoder = function zencoder() {
-  if(!globalThis.encoder) {
-    globalThis.encoder = new TextEncoder();
-    globalThis.encoder.zencode = function zencode(str) {
-      try {
-        return globalThis.encoder.encode(str);
-      } catch (e) {
-        console.log(e,...arguments);
-        try {
-          return ztoCharCodes(str);
-        } catch {
-          return ztoCharCodes(e?.message);
-        }
-      }
-    }
-  }
-  return globalThis.encoder;
-}
-globalThis.getReader = function getReader(stream) {
-  const r = Object.create(null);
-  r.reader = stream.getReader();
-  r.almostDone = false;
-  return r;
-}
-globalThis.zgetReader = function zgetReader(stream) {
-  try {
-    return getReader(stream);
-  } catch (e) {
-    console.log(e,...arguments);
-    try{
-      return getReader(znewReadableStream(stream));
-    }catch{
-      return getReader(znewReadableStream(e?.message));
-    }
-  }
-}
-globalThis.zread = async function zread(reader) {
-  if(reader.almostDone) {
-    try {
-      reader.reader.releaseLock();
-    } catch (e) {
-      console.log(e,...arguments);
-    }
-    return {
-      value: undefined,
-      done: true
-    };
-  }
-  try {
-    const rtrn = await reader.reader.read();
-    if(rtrn.done) {
-      try {
-        reader.reader.releaseLock();
-      } catch (e) {
-        console.log(e,...arguments);
-      }
-    }
-    return rtrn;
-  } catch (e) {
-    console.log(e,...arguments);
-    reader.almostDone = true;
-    return {
-      value: e.message,
-      done: false
-    };
-  }
-};
-globalThis.zcontrollerClose = function zcontrollerClose(controller) {
-  try {
-    return controller.close();
-  } catch (e) {
-    console.log(e,...arguments);
-    return controller;
-  }
-}
-globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
-  const req = res instanceof Request;
-  if(req && /^(GET|HEAD)$/i.test(String(res?.method))){return res;}
-  if(/^(101|204|205|304)$/.test(String(res?.status))){return res;}
-  //res = res.clone();
-  let timedout = true;
-  try {
-    options.timeout ??= 25000;
-    options.encode ??= true;
-    options.passthrough ??= false;
-    let reader = zgetReader(res.body);
-    let resolveStreamProcessed, timeoutHandle;
-    const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
-    const stream = znewReadableStream({
-      async start(controller) {
-        let modifiedChunk = {
-          value: "",
-          done: false
-        };
-        timeoutHandle = setTimeout(() => {
-          if(timedout)console.log(`Stream timed out after ${options.timeout}ms`);
-          zcontrollerClose(controller);
-          resolveStreamProcessed();
-        }, options.timeout);
-        while(true) {
-          try {
-            const chunk = await (zread(reader));
-            if(chunk.done) {
-              break;
-            }
-            let encodedChunk;
-            if(!modifiedChunk.done && !options.passthrough) {
-              let decodedChunk = options.encode ? zdecoder().zdecode(chunk.value) : chunk.value;
-              modifiedChunk = transform(decodedChunk);
-              encodedChunk = options.encode ? zencoder().zencode(modifiedChunk.value) : modifiedChunk;
-            } else {
-              encodedChunk = chunk.value;
-            }
-            controller.enqueue(encodedChunk);
-          } catch (e) {
-            try {
-              console.log(e.message);
-              controller.enqueue(zencoder().zencode(e.message));
-              break;
-            } catch {
-              break;
-            }
+      if(data.extends){
+        res = await zfetch(`https://${url.host}${data.extends}`);
+        let text = await zresponseText(res);
+        if(data.preplacements){
+          for(const x in data.preplacements){
+            text = text.replace(x,data.preplacements[x]);
           }
         }
-        zcontrollerClose(controller);
-        resolveStreamProcessed();
-        timedout = false;
+        text = text.replace("<head>",
+        `<head>
+          <script>
+            globalThis.cacheEnabled = ${cacheEnabled};
+            globalThis.cache = 1;
+            if(!globalThis.cacheEnabled){
+              globalThis.cache = new Date().getTime();
+            }
+            Object.defineProperty(Object.prototype, 'toLowerCase',{value:function toLowerCase(){
+              if(!globalThis.LowerCaseBugTriggered){
+                console.warn('Someone trying to make a non-string lowercase', this);
+                globalThis.LowerCaseBugTriggered = true;
+              }
+              return '';
+            },
+              enumerable:false,
+              writable:true,
+              configurable:true
+            });
+          </script>
+          <script src="/?path=sw.js&${cache}"></script>
+          <script src='/?path=indexFetch.js&${cache}'></script>
+          <script src="https://patrick-ring-motive.github.io/${new URL(alturl).pathname.replace(/\/Patrick-ring-motive\//i,'').replace(/\/main/i,'').replace(/md$/i,'js')}"></script>
+          <link rel="stylesheet" href="https://patrick-ring-motive.github.io/${new URL(alturl).pathname.replace(/\/Patrick-ring-motive\//i,'').replace(/\/main/i,'').replace(/md$/i,'css')}"></link>
+        ${otherResources}`);
+        console.log(text.length);
+        res = znewResponse(text,res);
       }
+    }
+  }
+  res = znewResponse(res.body, res);
+
+  const importCSSURL=`/?path=blackjack.css&${cache}`;
+  const importJSURL=`/?path=hookers.js${cache}`;
+  if (~`${zheadersGet(res.headers,'content-type')}`.search(/html/i)) {
+    res = await htmlInject(res,
+      `${makeStyle(importCSSURL)}
+       <script src="/?path=hookers.js&${cache}"></script>
+       <link rel="icon" href="/favicon.png" ></link>
+       <script>
+       globalThis.objDoProp = function (obj, prop, def, enm, mut) {
+        return Object.defineProperty(obj, prop, {
+          value: def,
+          writable: mut,
+          enumerable: enm,
+          configurable: mut
+        });
+      };
+      globalThis.objDefProp=(obj, prop, def) => objDoProp (obj, prop, def, false, true);
+      objDefProp(Object.prototype,'toLowerCase',function toLowerCase(){
+        if(!globalThis.LowerCaseBugTriggered){
+          console.warn('Someone trying to make a non-string lowercase', this);
+          globalThis.LowerCaseBugTriggered = true;
+        }
+        return '';
+      });
+      </script>
+       <script>
+       globalThis.cacheEnabled = ${cacheEnabled};
+       globalThis.cache = 1;
+       if(!globalThis.cacheEnabled){
+         globalThis.cache = new Date().getTime();
+       }
+       if(globalThis.hostTargetList){hostTargetList.push("${url.host}");}
+       else{globalThis.hostTargetList=["${url.host}"];}
+       </script>
+       <script src="/?path=sw.js&${cache}"></script>
+       <script src='/?path=/link-resolver.js&${cache}'></script>
+       <svg style="display:none;">
+       <script>
+       ${(await benderPromise).replace('Not Found','')}
+       </script>
+       </svg>
+       <script>${await fryPromise}</script>
+       <link rel="stylesheet" href="${raw}/leela.css?${cache}"></link>
+       <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet"></link>
+       `
+      );
+  }
+
+  if (~`${zheadersGet(res.headers,'content-type')}`.search(/script/i)) {
+    res = await scriptInject(res,
+    `globalThis.objDoProp = function (obj, prop, def, enm, mut) {
+      return Object.defineProperty(obj, prop, {
+        value: def,
+        writable: mut,
+        enumerable: enm,
+        configurable: mut
+      });
+    };
+    globalThis.objDefProp=(obj, prop, def) => objDoProp (obj, prop, def, false, true);
+    objDefProp(Object.prototype,'toLowerCase',function toLowerCase(){
+      if(!globalThis.LowerCaseBugTriggered){
+        console.warn('Someone trying to make a non-string lowercase', this);
+        globalThis.LowerCaseBugTriggered = true;
+      }
+      return '';
     });
-    streamProcessed.then(() => {
-      tryReleaseLock(stream,reader.reader);
-      clearTimeout(timeoutHandle);
-    });
-    ctx?.waitUntil?.(streamProcessed);
-    res = req ? new Request(res, {
-      body: stream
-    }) : new Response(stream, res);
-    return res;
-  } catch (e) {
-    console.log(e,...arguments);
-    return res;
+    if(globalThis.hostTargetList){hostTargetList.push("${url.host}");}
+     else{globalThis.hostTargetList=["${ globalThis.hostMap.get(workerHost)[0]}","${ globalThis.hostMap.get(workerHost)[1]}"];}
+     if(!globalThis['${importJSURL}']){
+       import('${importJSURL}');
+     }
+     globalThis['${importJSURL}']='${importJSURL}';
+    `);
+  }
+  const isGitURL = ~workerHost.search(/^git-tdn/i);
+  if(~String(url).search(/\.js($|\?\#)/i) && isGitURL){
+    const dto = serializeHTTP(res);
+    res = znewResponse(res?.zresBody?.()??res.body,dto);
+    res.headers.set('content-type','text/javascript; charset=utf-8');
+    
+  }
+  if(isGitURL){
+    const dto = serializeHTTP(res);
+    res = znewResponse(res?.zresBody?.()??res.body,dto);
+  }
+  if(request.url.endsWith('?.jsml')){
+    res.headers.set('content-type','text/html; charset=utf-8');
+  }
+  if(request.url.endsWith('?.pdf')){
+    res.headers.set('content-type','application/pdf');
+  }
+  if(request.url.endsWith('?.xhtml')){
+    res.headers.set('content-type','application/xhtml+xml; charset=utf-8');
+  }
+  if(request.url.endsWith('?.mhtml')){
+    res.headers.set('content-type','multipart/related');
+  }
+  if(request.url.endsWith('?.xml')){
+    res.headers.set('content-type','application/xml; charset=utf-8');
+  }
+  if(request.url.endsWith('?.jss')){
+    res.headers.set('content-type','text/css; charset=utf-8');
+  }
+  if(request.url.endsWith('?.docx')){
+    res.headers.set('content-type','application/vnd.openxmlformats-officedocument; charset=utf-8');
+  }
+  if(request.url.endsWith('?.ascii')){
+    res.headers.set('content-type','text/html; charset=ascii');
+  }
+  if(request.url.endsWith('?.16')){
+    res.headers.set('content-type','text/html; charset=utf-16');
+  }
+  if(request.url.endsWith('?.64')){
+    res = await transformStream(res,btoaChunk,ctx);
+    return addResponseHeaders(url, workerHost,res);
+  }
+  if(request.url.endsWith('?.bit')){
+    res = await transformStream(res,bitChunk,ctx);
+    return addResponseHeaders(url, workerHost,res);
+  }
+  if(request.url.endsWith('?.46')){
+    res = await transformStream(res,atobChunk,ctx);
+    return addResponseHeaders(url, workerHost,res);
+  }
+  res = addResponseHeaders(url, workerHost,res);
+  res.headers.set('got-from',url);
+  return await limitResponse(res,ctx,5000);
+}
+
+
+function btoaChunk(chunk) {
+  try{
+      chunk = btoa(chunk);
+      return {
+          value: chunk,
+          done: false
+      };
+  }catch{
+    return chunk;
   }
 }
-globalThis.limitResponse = async function limitResponse(res, ctx, timeout) {
-  return await transformStream(res, null, ctx, {
-    timeout: timeout,
-    passthrough: true
-  });
-}
-globalThis.zatob = function(str) {
-  str = `${str}`;
-  try {
-    return atob(str);
-  } catch (e) {
-    console.log(e,...arguments);
-    try {
-      return btoa(str)
-    } catch (e) {
-      console.log(e,...arguments);
-      return str;
-    }
+function atobChunk(chunk) {
+  try{
+      chunk = atob(chunk);
+      return {
+          value: chunk,
+          done: false
+      };
+  }catch{
+    return chunk;
   }
 }
-JSON.zparse = function zparse() {
-  try {
-    return JSON.parse(...arguments);
-  } catch (e) {
-    console.log(e,...arguments);
-    return e;
+
+function bitChunk(chunk) {
+  try{
+      chunk = zencoder().zencode((chunk));
+      chunk = zfromCharCodes(chunk);
+      return {
+          value: chunk,
+          done: false
+      };
+  }catch{
+    return chunk;
   }
 }
-JSON.zstringify = function zparse() {
-  try {
-    return JSON.stringify(...arguments);
-  } catch (e) {
-    console.log(e,...arguments);
-    const a = Object.getOwnPropertyNames(e);
-    const obj = {};
-    for(const x of a) {
-      obj[x] = e[x];
-    }
-    return JSON.stringify(obj);
-  }
+globalThis.makeScript=function(url){
+  return `<script src="${url}" href="${url}" ></script>`;
 }
-globalThis.tryReleaseLock = function(stream, reader = stream.getReader()) {
-  if(stream?.locked) {
-    try {
-      reader.releaseLock();
-    } catch (e) {
-      console.log(e,...arguments);
-    }
-  }
-}
-globalThis.zdecodeURIComponent = function zdecodeURIComponent(txt) {
-  try {
-    return decodeURIComponent(txt);
-  } catch {
-    try {
-      return decodeURI(txt);
-    } catch {
-      return txt;
-    }
-  }
-}
-globalThis.zencodeURIComponent = function zencodeURIComponent(txt) {
-  try {
-    return encodeURIComponent(txt);
-  } catch {
-    try {
-      return encodeURI(txt);
-    } catch {
-      return txt;
-    }
-  }
-}
-globalThis.zheadersSet = function zheadersSet(headers, key, val) {
-  try {
-    return headers.set(key, val);
-  } catch (e) {
-    try {
-      return headers.set(String(key).replace(/[^a-zA-Z-]/g, ''), String(val));
-    } catch {
-      console.log(e,...arguments);
-    }
-  }
-}
-globalThis.zheadersGet = function zheadersGet(headers, key) {
-  try {
-    return headers.get(key);
-  } catch (e) {
-    try {
-      return headers.get(String(key).replace(/[^a-zA-Z-]/g, ''));
-    } catch {
-      console.log(e,...arguments);
-    }
-  }
+
+globalThis.makeStyle=function(url){
+  return `<link rel="stylesheet" href="${url}"></link>
+  <style>@import "${url}";</style>
+  <link xmlns="http://www.w3.org/1999/xhtml" rel="stylesheet" href="${url}" type="text/css"></link>`;
 }
