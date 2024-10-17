@@ -136,14 +136,14 @@ globalThis.responseText = async function responseText(response) {
 };
 globalThis.zresponseText = async function zresponseText(response) {
   try {
-    const reader = zgetReader(res.clone().body);
+    const reader = zgetReader(response.clone().body);
     const txtArr = [];
     while(true) {
-            const chunk = await (zread(reader));
+            const chunk = await zread(reader);
             if(chunk?.done ?? !chunk) {
               break;
             }
-            txtArr.push(zdecoder().zdecode(chunk.value));
+            txtArr.push(zdecoder().zdecode(chunk?.value));
         }
     return txtArr.join``;
   } catch (e) {
