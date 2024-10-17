@@ -418,6 +418,13 @@ globalThis.znewReadableStream = function znewReadableStream() {
   	if(type === 'ReadableStream'){
   		return cloneStream(arguments?.[0]);
   	}
+    if(arguments?.[0]?.start){
+      try{
+        return new ReadableStream(...arguments);
+      }catch(e){
+        console.log(e,...arguments);
+      }
+    }
   	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
   		return newReadableStream(...arguments);
   	}
