@@ -570,7 +570,7 @@ globalThis.zread = async function zread(reader) {
     console.log(e,...arguments);
     reader.almostDone = true;
     return {
-      value: e.message,
+      value: zencoder().zencode(e.message),
       done: false
     };
   }
