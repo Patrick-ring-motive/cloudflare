@@ -428,6 +428,8 @@ globalThis.newResponseStream = function newResponseStream(data){
       const iter = [][Symbol.iterator].call(arguments);
       nextChunk = ()=>iter.next();
     }
+    let resolveStreamProcessed;
+    const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
   
     const stream = new ReadableStream({
     async start(controller){
@@ -450,8 +452,12 @@ globalThis.newResponseStream = function newResponseStream(data){
         }
     }
     controller.close();
+    resolveStreamProcessed();
   }
 });
+  streamProcessed.then(() => {
+      tryReleaseLock(stream);
+  });
   return stream;
 }
 
@@ -672,7 +678,7 @@ JSON.zstringify = function zparse() {
     return JSON.stringify(obj);
   }
 }
-globalThis.tryReleaseLock = function(stream, reader) {
+globalThis.tryReleaseLock = function(stream, reader = stream.getReader()) {
   if(stream?.locked) {
     try {
       reader.releaseLock();
