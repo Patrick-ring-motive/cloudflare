@@ -409,9 +409,56 @@ function cloneStream(stream){
   return tees[1];
 }
 
+globalThis.newResponseStream = function newResponseStream(data){
+    const dat = [data];
+    let nextChunk = ()=>dat.shift();
+    if(data[Symbol.iterator]){
+      const iter = data[Symbol.iterator]();
+      nextChunk = ()=>iter.next();
+    }else if(data[Symbol.asyncIterator]){
+      nextChunk = async ()=>await data[Symbol.asyncIterator]().next();
+    }else if(data.next){
+      nextChunk = ()=>data.next();
+    }else if(data.read){
+      nextChunk = ()=>data.read();
+    }else if(data.length){
+      const iter = [][Symbol.iterator].call(data);
+      nextChunk = ()=>iter.next();
+    }else if(arguments.length>1){
+      const iter = [][Symbol.iterator].call(arguments);
+      nextChunk = ()=>iter.next();
+    }
+  
+    const stream = new ReadableStream({
+    async start(controller){
+    while(true){
+      try{
+    const dataChunk = await nextChunk();
+      if(dataChunk?.done || !dataChunk){
+        break;
+      }
+    let value = dataChunk.value;
+    if(Number.isInteger(value)){
+      value = new Int32Array([value]);
+    }else if(value?.every?.(x=>Number.isInteger(x))){
+              value = new Int32Array([...value]);
+            }
+    const chunk = await new Response(value).bytes();
+    controller.enqueue(chunk);
+      }catch{
+          break;
+        }
+    }
+    controller.close();
+  }
+});
+  return stream;
+}
+
 globalThis.newReadableStream = function(input) {
   return new Response(input).body;
 }
+
 globalThis.znewReadableStream = function znewReadableStream() {
   try {
   	const type = String(arguments?.[0]?.constructor?.name);
@@ -432,7 +479,7 @@ globalThis.znewReadableStream = function znewReadableStream() {
       if(ReadableStream.from){
         return ReadableStream.from(...arguments);
       }
-  		return newReadableStream(new Int8Array([...arguments[0]]));
+  		return newResponseStream(arguments);
   	}catch(e){
   		return new ReadableStream(...arguments);
   	}
