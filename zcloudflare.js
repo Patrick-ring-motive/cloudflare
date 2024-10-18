@@ -523,6 +523,9 @@ globalThis.zencoder = function zencoder() {
         }
       }
     }
+    globalThis.encoder.zasyncEncode = async function zasyncEncode(str) {
+      return zencoder().encode(str);
+    }
   }
   return globalThis.encoder;
 }
@@ -544,6 +547,11 @@ globalThis.zgetReader = function zgetReader(stream) {
     }
   }
 }
+
+globalThis.zasyncGetReader = async function zasyncGetReader(stream) {
+  return zgetReader(stream); 
+}
+
 globalThis.zread = async function zread(reader) {
   if(reader.almostDone) {
     try {
