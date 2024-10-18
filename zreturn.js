@@ -506,6 +506,9 @@ globalThis.zdecoder = function zdecoder() {
         }
       }
     }
+    globalThis.encoder.zasyncDecode = async function zasyncDecode(raw) {
+      return zdecoder().decode(raw);
+    }
   }
   return globalThis.decoder;
 }
@@ -523,6 +526,9 @@ globalThis.zencoder = function zencoder() {
           return ztoCharCodes(e?.message);
         }
       }
+    }
+    globalThis.encoder.zasyncEncode = async function zasyncEncode(str) {
+      return zencoder().encode(str);
     }
   }
   return globalThis.encoder;
@@ -612,7 +618,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
     options.timeout ??= 25000;
     options.encode ??= true;
     options.passthrough ??= false;
-    let reader = zgetReader(res.body);
+    const reader = zgetReader(res.body);
     let resolveStreamProcessed, timeoutHandle;
     const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
     const stream = znewReadableStream({
@@ -634,9 +640,13 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
             }
             let encodedChunk;
             if(!modifiedChunk.done && !options.passthrough) {
-              let decodedChunk = options.encode ? zdecoder().zdecode(chunk.value) : chunk.value;
-              modifiedChunk = transform(decodedChunk);
-              encodedChunk = options.encode ? zencoder().zencode(modifiedChunk.value) : modifiedChunk;
+              let decodedChunk = options.encode 
+                               ? (await zdecoder().zasyncDecode(chunk.value))
+                               : chunk.value;
+              modifiedChunk = await transform(decodedChunk);
+              encodedChunk = options.encode 
+                           ? (await zencoder().zasyncEncode(modifiedChunk.value))
+                           : modifiedChunk;
             } else {
               encodedChunk = chunk.value;
             }
@@ -644,7 +654,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
           } catch (e) {
             try {
               console.log(e.message);
-              controller.enqueue(zencoder().zencode(e.message));
+              controller.enqueue(await zencoder().zasyncEncode(e.message));
               break;
             } catch {
               break;
