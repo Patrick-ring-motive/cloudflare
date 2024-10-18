@@ -650,11 +650,11 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
             } else {
               encodedChunk = chunk.value;
             }
-            controller.enqueue(encodedChunk);
+            zcontrollerEnqueue(controller,encodedChunk);
           } catch (e) {
             try {
               console.log(e,...arguments);
-              controller.enqueue(await zencoder().zasyncEncode(e.message));
+              zcontrollerEnqueue(controller,await zencoder().zasyncEncode(e.message));
               break;
             } catch {
               break;
