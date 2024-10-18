@@ -506,7 +506,7 @@ globalThis.zdecoder = function zdecoder() {
         }
       }
     }
-    globalThis.encoder.zasyncDecode = async function zasyncDecode(raw) {
+    globalThis.decoder.zasyncDecode = async function zasyncDecode(raw) {
       return zdecoder().decode(raw);
     }
   }
@@ -653,7 +653,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
             controller.enqueue(encodedChunk);
           } catch (e) {
             try {
-              console.log(e.message);
+              console.log(e,...arguments);
               controller.enqueue(await zencoder().zasyncEncode(e.message));
               break;
             } catch {
