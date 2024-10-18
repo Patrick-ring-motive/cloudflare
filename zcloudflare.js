@@ -505,6 +505,9 @@ globalThis.zdecoder = function zdecoder() {
         }
       }
     }
+    globalThis.encoder.zasyncDecode = async function zasyncDecode(raw) {
+      return zdecoder().decode(raw);
+    }
   }
   return globalThis.decoder;
 }
