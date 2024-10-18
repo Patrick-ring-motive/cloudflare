@@ -626,9 +626,13 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
             }
             let encodedChunk;
             if(!modifiedChunk.done && !options.passthrough) {
-              let decodedChunk = options.encode ? zdecoder().zdecode(chunk.value) : chunk.value;
-              modifiedChunk = transform(decodedChunk);
-              encodedChunk = options.encode ? zencoder().zencode(modifiedChunk.value) : modifiedChunk;
+              let decodedChunk = options.encode 
+                               ? (await zdecoder().zasyncDecode(chunk.value))
+                               : chunk.value;
+              modifiedChunk = await transform(decodedChunk);
+              encodedChunk = options.encode 
+                           ? (await zencoder().zasyncEncode(modifiedChunk.value))
+                           : modifiedChunk;
             } else {
               encodedChunk = chunk.value;
             }
