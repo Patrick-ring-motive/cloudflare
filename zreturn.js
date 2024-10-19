@@ -729,7 +729,7 @@ globalThis.zhttpCopy = function zhttpCopy(re){
 };
 globalThis.zhttpClone = function zclone(re){
   try{
-    return re.clone.();
+    return re.clone();
   }catch(e){
     console.log(e,...arguments);
     return zhttpCopy(re).clone();
