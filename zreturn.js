@@ -26,6 +26,12 @@ globalThis. objectNames = (x) => Object.getOwnPropertyNames(x);
 globalThis. objectSymbols = function () {
   return Object.getOwnPropertySymbols(...arguments);
 };
+globalThis.objDefProps = function objDefProps(obj,props={}){
+  for(let prop in props){
+    objDefProp(obj,prop,props[prop]);
+  }
+  return obj;
+};
 globalThis. objGetProto = function () {
   return Object.getPrototypeOf(...arguments);
 };
