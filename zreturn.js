@@ -1,4 +1,14 @@
 import {fuzzyMatch} from './fuzz.js';
+globalThis.sleep = function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+globalThis.adefer = async function adefer(promise) {
+   return(await Promise.allSettled([
+    promise,
+    sleep(0),
+   ]))?.[0]?.value;
+}
 
 globalThis. objDoProp = function (obj, prop, def, enm, mut) {
   return Object.defineProperty(obj, prop, {
@@ -184,24 +194,24 @@ globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(response) 
 };
 globalThis.zfetch = async function() {
   try {
-    return (await fetch.apply(this, arguments));
+    return (await adefer(fetch.apply(this, arguments)));
   } catch (e) {
     let code = 569;
     try {
-      return (await fetch.call(this, arguments[0]));
+      return (await adefer(fetch.call(this, arguments[0])));
     } catch {
       console.log(e,...arguments);
-      const match = fuzzyMatch(e.message);
+      const match = await adefer(fuzzyMatch(e.message));
       if(match[2] >= 2) {
         code = +match[0] || 569;
       }
-      return (znewResponse(arguments[0] + '\n' + e?.message + '\n' + e?.stack, {
+      return await adefer((znewResponse(arguments[0] + '\n' + e?.message + '\n' + e?.stack, {
         status: code,
         statusText: e?.message,
         headers: {
           "Content-Type": "text/html"
         }
-      }));
+      })));
     }
   }
 };
