@@ -108,11 +108,11 @@ globalThis.newFetch = function newFetch(init) {
 globalThis.newRead = function newRead(init) {
   if(!globalThis.Read){
     globalThis.Read = new Response('').body.getReader().read;
-    Read.prototype = Read;
-    Read.constructor = Read;
+    objDefProp(Read,'prototype',Read)
+    objDefProp(Read,'constructor',Read);
   }
   const read = Object.assign(Object.create(Read.prototype), init);
-  read.constructor = Read;
+  objDefProp(read,'constructor',Read);
   return read;
 }
 
