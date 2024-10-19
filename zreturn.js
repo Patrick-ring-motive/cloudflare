@@ -340,13 +340,11 @@ globalThis.znewURL = function znewURL() {
 }
 globalThis.zfetchText = async function() {
   try {
-    let res = await fetch.apply(this, arguments);
+    let res = await adefer(fetch.apply(this, arguments));
     if(res?.status > 399) {
       return String(res?.statusText);
     }
-    const resText = await responseText(res);
-    res.zresBody = () => resText;
-    return resText;
+    const resText = await adefer(responseText(res));
   } catch (e) {
     console.log(e,...arguments);
     return String(e?.message);
@@ -612,7 +610,7 @@ globalThis.zcontrollerEnqueue = async function zcontrollerEnqueue(controller,enc
     if('Uint8Array' === encodedChunk?.constructor?.name){
       controller.enqueue(encodedChunk);
     }else{
-      const response = new Response(encodedChunk);
+      const response = znewResponse(encodedChunk);
       const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
       controller.enqueue(chunk);
     }
