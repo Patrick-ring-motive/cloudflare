@@ -98,11 +98,9 @@ function assignAll(target, src) {
 
 
 
-fetch.prototype ?? (objDefProp(fetch,'prototype',fetch)&&objDefProp(fetch,'constructor',fetch));
+fetch.prototype ?? objDefPro(objDefProp(fetch,'prototype',fetch),fetch,'constructor',fetch));
 globalThis.newFetch = function newFetch(init) {
-  const fech = Object.assign(create(fetch.prototype), init);
-  objDefProp(fech,'constructor',fetch);
-  return fech;
+  return objDefProp(Object.assign(create(fetch.prototype), init),'constructor',fetch);
 }
 
 globalThis.newRead = function newRead(init) {
