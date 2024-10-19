@@ -712,15 +712,18 @@ globalThis.zheadersGet = function zheadersGet(headers, key) {
     }
   }
 }
-globalThis.zclone = function zclone(re){
+globalThis.zhttpCopy = function zhttpCopy(re){
+  if(re instanceof Request) {
+      return znewRequest(...arguments);
+    }
+    return znewResponse(re?.body,re);
+};
+globalThis.zhttpClone = function zclone(re){
   try{
     return re.clone.();
   }catch(e){
     console.log(e,...arguments);
-    if(re instanceof Request) {
-      return znewRequest(...arguments).clone();
-    }
-    return znewResponse(re?.body,re).clone();
+    return zhttpCopy(re).clone();
   }
 }
 globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
@@ -732,8 +735,11 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
     options.timeout ??= 25000;
     options.encode ??= true;
     options.passthrough ??= false;
+    if(options.copy === 'new'){
+      res = zhttpCopy(res);
+    }
     if(options.copy === 'clone'){
-      res = res.clone()
+      res = zhttpClone(res);
     }
     const reader = zgetReader(res.body);
     let resolveStreamProcessed, timeoutHandle;
