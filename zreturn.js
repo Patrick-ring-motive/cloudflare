@@ -420,6 +420,13 @@ function cloneStream(stream){
 globalThis.bytes = async function bytes(res){
   return await (res?.bytes?.() ?? (new Uint8Array(await res.arrayBuffer())));
 };
+globalThis.httpEncode = async function httpEncode(val){
+  return  await bytes(new Response(val));
+}
+globalThis.httpDecode = async function httpDecode(val){
+  return  await new Response(val).text();
+}
+
 globalThis.makeReadableStream = function makeReadableStream(data){
     const dat = [data];
     let nextChunk = ()=>dat.shift();
