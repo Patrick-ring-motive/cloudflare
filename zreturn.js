@@ -417,7 +417,9 @@ function cloneStream(stream){
   assignAll(stream,tees[0]);
   return tees[1];
 }
-
+globalThis.bytes = async function bytes(res){
+  return await (res?.bytes?.() ?? (new Uint8Array(await res.arrayBuffer())));
+};
 globalThis.makeReadableStream = function makeReadableStream(data){
     const dat = [data];
     let nextChunk = ()=>dat.shift();
