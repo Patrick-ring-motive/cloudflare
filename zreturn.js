@@ -98,10 +98,10 @@ function assignAll(target, src) {
 
 
 
-fetch.prototype ??= (fetch.constructor = fetch);
+fetch.prototype ?? (objDefProp(fetch,'prototype',fetch)&&objDefProp(fetch,'constructor',fetch));
 globalThis.newFetch = function newFetch(init) {
-  const fech = Object.assign(Object.create(fetch.prototype), init);
-  fech.constructor = fetch;
+  const fech = Object.assign(create(fetch.prototype), init);
+  objDefProp(fech,'constructor',fetch);
   return fech;
 }
 
@@ -334,15 +334,15 @@ globalThis.znewURL = function znewURL() {
 globalThis.zfetchText = async function() {
   try {
     let res = await fetch.apply(this, arguments);
-    if(res.status > 399) {
-      return res.statusText;
+    if(res?.status > 399) {
+      return String(res?.statusText);
     }
     const resText = await responseText(res);
     res.zresBody = () => resText;
     return resText;
   } catch (e) {
     console.log(e,...arguments);
-    return e?.message;
+    return String(e?.message);
   }
 }
 globalThis.toCharCodes = function toCharCodes(str) {
