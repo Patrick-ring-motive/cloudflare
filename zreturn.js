@@ -111,7 +111,7 @@ globalThis.newRead = function newRead(init) {
     objDefProp(Read,'prototype',Read)
     objDefProp(Read,'constructor',Read);
   }
-  const read = Object.assign(Object.create(Read.prototype), init);
+  const read = Object.assign(create(Read.prototype), init);
   objDefProp(read,'constructor',Read);
   return read;
 }
