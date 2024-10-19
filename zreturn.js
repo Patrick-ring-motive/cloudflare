@@ -542,10 +542,10 @@ globalThis.zencoder = function zencoder() {
   return globalThis.encoder;
 }
 globalThis.getReader = function getReader(stream) {
-  const read = newRead();
-  read.reader = stream.getReader();
-  read.almostDone = false;
-  return read;
+  return newRead({
+    reader : stream.getReader(),
+    almostDone : false,
+  });
 }
 globalThis.zgetReader = function zgetReader(stream) {
   try {
