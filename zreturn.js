@@ -764,6 +764,9 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
           zcontrollerClose(controller);
           resolveStreamProcessed();
         }, options.timeout);
+        if(options.head){
+          zcontrollerEnqueue(controller,await httpEncode(options.head));
+        }
         while(true) {
           try {
             const chunk = await (zread(reader));
@@ -792,6 +795,9 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
               break;
             }
           }
+        }
+        if(options.tail){
+          zcontrollerEnqueue(controller,await httpEncode(options.tail));
         }
         zcontrollerClose(controller);
         resolveStreamProcessed();
