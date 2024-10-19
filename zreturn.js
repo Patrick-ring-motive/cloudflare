@@ -825,3 +825,17 @@ globalThis.limitResponse = async function limitResponse(res, ctx, timeout) {
   });
 }
 
+
+globalThis.prependResponse = async function prependResponse(res, ctx, head) {
+  return await transformStream(res, null, ctx, {
+    head: head,
+    passthrough: true
+  });
+}
+
+globalThis.appendResponse = async function appendResponse(res, ctx, tail) {
+  return await transformStream(res, null, ctx, {
+    tail: tail,
+    passthrough: true
+  });
+}
