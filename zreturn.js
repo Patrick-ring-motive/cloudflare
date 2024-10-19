@@ -623,84 +623,7 @@ globalThis.zcontrollerEnqueue = async function zcontrollerEnqueue(controller,enc
     }catch{}
   }
 }
-globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
-  const req = res instanceof Request;
-  if(req && /^(GET|HEAD)$/i.test(String(res?.method))){return res;}
-  if(/^(101|204|205|304)$/.test(String(res?.status))){return res;}
-  //res = res.clone();
-  let timedout = true;
-  try {
-    options.timeout ??= 25000;
-    options.encode ??= true;
-    options.passthrough ??= false;
-    const reader = zgetReader(res.body);
-    let resolveStreamProcessed, timeoutHandle;
-    const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
-    const stream = znewReadableStream({
-      async start(controller) {
-        let modifiedChunk = {
-          value: "",
-          done: false
-        };
-        timeoutHandle = setTimeout(() => {
-          if(timedout)console.log(`Stream timed out after ${options.timeout}ms`);
-          zcontrollerClose(controller);
-          resolveStreamProcessed();
-        }, options.timeout);
-        while(true) {
-          try {
-            const chunk = await (zread(reader));
-            if(chunk.done) {
-              break;
-            }
-            let encodedChunk;
-            if(!modifiedChunk.done && !options.passthrough) {
-              let decodedChunk = options.encode 
-                               ? (await zdecoder().zasyncDecode(chunk.value))
-                               : chunk.value;
-              modifiedChunk = await transform(decodedChunk);
-              encodedChunk = options.encode 
-                           ? (await zencoder().zasyncEncode(modifiedChunk.value))
-                           : modifiedChunk;
-            } else {
-              encodedChunk = chunk.value;
-            }
-            zcontrollerEnqueue(controller,encodedChunk);
-          } catch (e) {
-            try {
-              console.log(e,...arguments);
-              zcontrollerEnqueue(controller,await zencoder().zasyncEncode(e.message));
-              break;
-            } catch {
-              break;
-            }
-          }
-        }
-        zcontrollerClose(controller);
-        resolveStreamProcessed();
-        timedout = false;
-      }
-    });
-    streamProcessed.then(() => {
-      tryReleaseLock(stream,reader.reader);
-      clearTimeout(timeoutHandle);
-    });
-    ctx?.waitUntil?.(streamProcessed);
-    res = req ? new Request(res, {
-      body: stream
-    }) : new Response(stream, res);
-    return res;
-  } catch (e) {
-    console.log(e,...arguments);
-    return res;
-  }
-}
-globalThis.limitResponse = async function limitResponse(res, ctx, timeout) {
-  return await transformStream(res, null, ctx, {
-    timeout: timeout,
-    passthrough: true
-  });
-}
+
 globalThis.zatob = function(str) {
   str = `${str}`;
   try {
@@ -789,3 +712,95 @@ globalThis.zheadersGet = function zheadersGet(headers, key) {
     }
   }
 }
+globalThis.zclone = function zclone(re){
+  try{
+    return re.clone.();
+  }catch(e){
+    console.log(e,...arguments);
+    if(re instanceof Request) {
+      return znewRequest(...arguments).clone();
+    }
+    return znewResponse(re?.body,re).clone();
+  }
+}
+globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
+  const req = res instanceof Request;
+  if(req && /^(GET|HEAD)$/i.test(String(res?.method))){return res;}
+  if(/^(101|204|205|304)$/.test(String(res?.status))){return res;}
+  let timedout = true;
+  try {
+    options.timeout ??= 25000;
+    options.encode ??= true;
+    options.passthrough ??= false;
+    if(options.copy === 'clone'){
+      res = res.clone()
+    }
+    const reader = zgetReader(res.body);
+    let resolveStreamProcessed, timeoutHandle;
+    const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
+    const stream = znewReadableStream({
+      async start(controller) {
+        let modifiedChunk = {
+          value: "",
+          done: false
+        };
+        timeoutHandle = setTimeout(() => {
+          if(timedout)console.log(`Stream timed out after ${options.timeout}ms`);
+          zcontrollerClose(controller);
+          resolveStreamProcessed();
+        }, options.timeout);
+        while(true) {
+          try {
+            const chunk = await (zread(reader));
+            if(chunk.done) {
+              break;
+            }
+            let encodedChunk;
+            if(!modifiedChunk.done && !options.passthrough) {
+              let decodedChunk = options.encode 
+                               ? (await zdecoder().zasyncDecode(chunk.value))
+                               : chunk.value;
+              modifiedChunk = await transform(decodedChunk);
+              encodedChunk = options.encode 
+                           ? (await zencoder().zasyncEncode(modifiedChunk.value))
+                           : modifiedChunk;
+            } else {
+              encodedChunk = chunk.value;
+            }
+            zcontrollerEnqueue(controller,encodedChunk);
+          } catch (e) {
+            try {
+              console.log(e,...arguments);
+              zcontrollerEnqueue(controller,await zencoder().zasyncEncode(e.message));
+              break;
+            } catch {
+              break;
+            }
+          }
+        }
+        zcontrollerClose(controller);
+        resolveStreamProcessed();
+        timedout = false;
+      }
+    });
+    streamProcessed.then(() => {
+      tryReleaseLock(stream,reader.reader);
+      clearTimeout(timeoutHandle);
+    });
+    ctx?.waitUntil?.(streamProcessed);
+    res = req ? new Request(res, {
+      body: stream
+    }) : new Response(stream, res);
+    return res;
+  } catch (e) {
+    console.log(e,...arguments);
+    return res;
+  }
+}
+globalThis.limitResponse = async function limitResponse(res, ctx, timeout) {
+  return await transformStream(res, null, ctx, {
+    timeout: timeout,
+    passthrough: true
+  });
+}
+
