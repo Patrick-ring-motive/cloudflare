@@ -104,7 +104,10 @@ function assignAll(target, src) {
 
 
 
-fetch.prototype ?? objDefPro(objDefProp(fetch,'prototype',fetch),fetch,'constructor',fetch));
+fetch.prototype ?? objDefProps(fetch,{
+  prototype:fetch,
+  constructor:fetch
+});
 globalThis.newFetch = function newFetch(init) {
   return objDefProp(Object.assign(create(fetch.prototype), init),'constructor',fetch);
 }
@@ -112,12 +115,12 @@ globalThis.newFetch = function newFetch(init) {
 globalThis.newRead = function newRead(init) {
   if(!globalThis.Read){
     globalThis.Read = new Response('').body.getReader().read;
-    objDefProp(Read,'prototype',Read)
-    objDefProp(Read,'constructor',Read);
+    objDefProps(Read,{
+      prototype:Read,
+      constructor:Read,
+    });
   }
-  const read = Object.assign(create(Read.prototype), init);
-  objDefProp(read,'constructor',Read);
-  return read;
+  return objDefProp(Object.assign(create(Read.prototype), init),'constructor',Read);
 }
 
 globalThis.serializeHTTP ??= function serializeHTTP(re) {
