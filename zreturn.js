@@ -620,14 +620,14 @@ globalThis.zcontrollerEnqueue = async function zcontrollerEnqueue(controller,enc
       controller.enqueue(encodedChunk);
     }else{
       const response = znewResponse(encodedChunk);
-      const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
+      const chunk = await bytes(response);
       controller.enqueue(chunk);
     }
   }catch(e){
     console.log(e,...arguments);
     try{
       const response = new Response(`/*${e.message}*/`);
-      const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
+      const chunk = await bytes(response);
       controller.enqueue(chunk);
     }catch{}
   }
