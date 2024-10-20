@@ -6,7 +6,7 @@ globalThis.sleep = function sleep(ms) {
 globalThis.adefer = async function adefer(promise) {
    return(await Promise.all([
     promise,
-    sleep(0),
+   // sleep(0),
    ]))?.[0];
 }
 
@@ -201,6 +201,7 @@ globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(response) 
 };
 globalThis.zfetch = async function() {
   try {
+    console.log(...arguments)
     return (await adefer(fetch.apply(this, arguments)));
   } catch (e) {
     let code = 569;
@@ -340,9 +341,10 @@ globalThis.znewURL = function znewURL() {
 }
 globalThis.zfetchText = async function() {
   try {
+    console.log(...arguments)
     let res = await adefer(fetch.apply(this, arguments));
     if(res?.status > 399) {
-      return String(res?.statusText);
+      return `${String(res?.status)}${String(res?.statusText)}`;
     }
     const resText = await adefer(responseText(res));
   } catch (e) {
@@ -620,14 +622,14 @@ globalThis.zcontrollerEnqueue = async function zcontrollerEnqueue(controller,enc
       controller.enqueue(encodedChunk);
     }else{
       const response = znewResponse(encodedChunk);
-      const chunk = await bytes(response);
+      const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
       controller.enqueue(chunk);
     }
   }catch(e){
     console.log(e,...arguments);
     try{
       const response = new Response(`/*${e.message}*/`);
-      const chunk = await bytes(response);
+      const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
       controller.enqueue(chunk);
     }catch{}
   }
@@ -680,7 +682,8 @@ globalThis.tryReleaseLock = function(stream, reader = stream.getReader()) {
 globalThis.zdecodeURIComponent = function zdecodeURIComponent(txt) {
   try {
     return decodeURIComponent(txt);
-  } catch {
+  } catch (e){
+    console.log(e,...arguments);
     try {
       return decodeURI(txt);
     } catch {
@@ -691,7 +694,8 @@ globalThis.zdecodeURIComponent = function zdecodeURIComponent(txt) {
 globalThis.zencodeURIComponent = function zencodeURIComponent(txt) {
   try {
     return encodeURIComponent(txt);
-  } catch {
+  } catch(e) {
+    console.log(e,...arguments);
     try {
       return encodeURI(txt);
     } catch {
