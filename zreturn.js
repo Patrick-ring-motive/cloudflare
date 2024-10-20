@@ -4,10 +4,10 @@ globalThis.sleep = function sleep(ms) {
 }
 
 globalThis.adefer = async function adefer(promise) {
-   return(await Promise.allSettled([
+   return(await Promise.all([
     promise,
     sleep(0),
-   ]))?.[0]?.value;
+   ]))?.[0];
 }
 
 globalThis. objDoProp = function (obj, prop, def, enm, mut) {
