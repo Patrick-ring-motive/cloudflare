@@ -138,6 +138,21 @@ globalThis.serializeHTTP ??= function serializeHTTP(re) {
   }
   return reDTO;
 }
+globalThis.serializeResponse ??= function serializeResponse(re) {
+  const reDTO = newFetch({
+    headers: Object.fromEntries(re.headers)
+  });
+  for(const a in re) {
+    if(re[a] == null || typeof re[a] === 'function') {
+      continue;
+    }
+    if(~String(a).search(/headers|fetcher|signal/)) {
+      continue;
+    }
+    reDTO[a] = re[a];
+  }
+  return reDTO;
+}
 globalThis.newArrayBuffer = function(input) {
   const buf = new ArrayBuffer(input.length * 2);
   const bufView = new Uint16Array(buf);
