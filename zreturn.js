@@ -166,6 +166,17 @@ globalThis.serializeHTTP ??= function serializeHTTP(re) {
   }
   return reDTO;
 }
+
+globalThis.newRespond = function newRespond(init) {
+  if(!globalThis.Respond){
+    globalThis.Respond = q(()=>FetchEvent)?.prototype?.respondWith;
+    objDefProps(Respond,{
+      prototype:Respond,
+      constructor:Respond,
+    });
+  }
+  return objDefProp(Object.assign(create(Respond.prototype), init),'constructor',Respond);
+}
 globalThis.serializeResponse ??= function serializeResponse(re) {
   const reDTO = newFetch({
     headers: Object.fromEntries(re.headers)
