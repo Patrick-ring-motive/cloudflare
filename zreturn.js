@@ -347,6 +347,7 @@ globalThis.zfetchText = async function() {
       return `${String(res?.status)}${String(res?.statusText)}`;
     }
     const resText = await adefer(responseText(res));
+    return resText;
   } catch (e) {
     console.log(e,...arguments);
     return String(e?.message);
