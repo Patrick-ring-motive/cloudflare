@@ -164,6 +164,10 @@ globalThis.serializeHTTP ??= function serializeHTTP(re) {
     }
     reDTO[a] = re[a];
   }
+  for(const a in re) {try{
+    let key = `fetch-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
+  }catch{}}
   return reDTO;
 }
 
