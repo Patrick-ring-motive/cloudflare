@@ -169,7 +169,7 @@ globalThis.serializeHTTP ??= function serializeHTTP(re) {
 
 globalThis.newRespond = function newRespond(init) {
   if(!globalThis.Respond){
-    globalThis.Respond = q(()=>FetchEvent)?.prototype?.respondWith;
+    globalThis.Respond = q(()=>FetchEvent)?.prototype?.respondWith ?? function respondWith(){};
     objDefProps(Respond,{
       prototype:Respond,
       constructor:Respond,
@@ -178,7 +178,7 @@ globalThis.newRespond = function newRespond(init) {
   return objDefProp(Object.assign(create(Respond.prototype), init),'constructor',Respond);
 }
 globalThis.serializeResponse ??= function serializeResponse(re) {
-  const reDTO = newFetch({
+  const reDTO = newRespond({
     headers: Object.fromEntries(re.headers)
   });
   for(const a in re) {
@@ -190,6 +190,10 @@ globalThis.serializeResponse ??= function serializeResponse(re) {
     }
     reDTO[a] = re[a];
   }
+  for(const a in re) {try{
+    let key = `response-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+    (reDTO.headers??={})[key] = String(re[a]);
+  }catch{}}
   return reDTO;
 }
 globalThis.newArrayBuffer = function(input) {
