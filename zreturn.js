@@ -1,4 +1,32 @@
 import {fuzzyMatch} from './fuzz.js';
+
+(()=>{
+  const q = (varFn) => {
+    try{
+      return varFn?.();
+    }catch(e){
+      if(e.name != 'ReferenceError'){
+        throw e;
+      }
+    }
+  }
+
+  const globalObject = q(()=>globalThis) // works in most modern runtimes
+                    ?? q(()=>self) // also works in most modern runtimes
+                    ?? q(()=>global) // fallback for older nodejs
+                    ?? q(()=>window) // fallback for older browsers
+                    ?? this ?? {}; // fallbacks for edge cases.
+                    
+  for(let x of ['globalThis','self','global']){
+    globalObject[x] = globalObject;
+  }
+  self.q = q;
+
+  self.newQ = (...args) => {
+     const fn = args?.shift?.();
+     return fn && new fn(...args);
+  };
+})();
 globalThis.sleep = function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
