@@ -1,5 +1,6 @@
 import {fuzzyMatch} from './fuzz.js';
 
+
 (()=>{
   const q = (varFn) => {
     try{
@@ -139,15 +140,12 @@ fetch.prototype ?? objDefProps(fetch,{
 globalThis.newFetch = function newFetch(init) {
   return objDefProp(Object.assign(create(fetch.prototype), init),'constructor',fetch);
 }
-
+globalThis.Read = ReadableStreamDefaultReader.prototype.read;
+objDefProps(Read,{
+  prototype:Read,
+  constructor:Read,
+});
 globalThis.newRead = function newRead(init) {
-  if(!globalThis.Read){
-    globalThis.Read = new Response('').body.getReader().read;
-    objDefProps(Read,{
-      prototype:Read,
-      constructor:Read,
-    });
-  }
   return objDefProp(Object.assign(create(Read.prototype), init),'constructor',Read);
 }
 
@@ -282,7 +280,6 @@ globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(response) 
 };
 globalThis.zfetch = async function() {
   try {
-    console.log(...arguments)
     return (await adefer(fetch.apply(this, arguments)));
   } catch (e) {
     let code = 569;
@@ -587,12 +584,16 @@ globalThis.znewReadableStream = function znewReadableStream() {
   	}
   	try{
       if(ReadableStream.from){
-        return ReadableStream.from(...arguments);
+        //return ReadableStream.from(...arguments);
       }
-  		return makeReadableStream(arguments);
+  		return makeReadableStream(...arguments);
   	}catch(e){
+      try{
       console.log(e,...arguments);
-  		return new ReadableStream(...arguments);
+  		return ReadableStream?.from?.(...arguments);
+      }catch(e){
+        return newReadableStream(e.message);
+      }
   	}
   } catch (e) {
     console.log(e,...arguments);
