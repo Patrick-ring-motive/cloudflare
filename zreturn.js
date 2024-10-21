@@ -192,7 +192,26 @@ globalThis.serializeResponse ??= function serializeResponse(re) {
   }
   for(const a in re) {try{
     let key = `response-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
-    (reDTO.headers??={})[key] = String(re[a]);
+    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
+  }catch{}}
+  return reDTO;
+}
+globalThis.serializeRequest ??= function serializeRequest(re) {
+  const reDTO = newFetch({
+    headers: Object.fromEntries(re.headers)
+  });
+  for(const a in re) {
+    if(re[a] == null || typeof re[a] === 'function') {
+      continue;
+    }
+    if(~String(a).search(/headers|fetcher|signal/)) {
+      continue;
+    }
+    reDTO[a] = re[a];
+  }
+  for(const a in re) {try{
+    let key = `request-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
   }catch{}}
   return reDTO;
 }
