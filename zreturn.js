@@ -247,7 +247,7 @@ globalThis.responseText = async function responseText(response) {
 };
 globalThis.zresponseText = async function zresponseText(response) {
   try {
-    const reader = zgetReader(response.clone().body);
+    const reader = zgetReader(response.body);
     const txtArr = [];
     while(true) {
       try{
@@ -605,7 +605,7 @@ globalThis.zdecoder = function zdecoder() {
     globalThis.decoder = new TextDecoder();
     globalThis.decoder.zdecode = function zdecode(raw) {
       try {
-        return globalThis.decoder.decode(raw);
+        return globalThis.decoder.decode(...arguments);
       } catch (e) {
         console.log(e,...arguments);
         try {
@@ -616,7 +616,7 @@ globalThis.zdecoder = function zdecoder() {
       }
     }
     globalThis.decoder.zasyncDecode = async function zasyncDecode(raw) {
-      return zdecoder().decode(raw);
+      return zdecoder().decode(...arguments);
     }
   }
   return globalThis.decoder;
@@ -626,7 +626,7 @@ globalThis.zencoder = function zencoder() {
     globalThis.encoder = new TextEncoder();
     globalThis.encoder.zencode = function zencode(str) {
       try {
-        return globalThis.encoder.encode(str);
+        return globalThis.encoder.encode(...arguments);
       } catch (e) {
         console.log(e,...arguments);
         try {
@@ -637,7 +637,7 @@ globalThis.zencoder = function zencoder() {
       }
     }
     globalThis.encoder.zasyncEncode = async function zasyncEncode(str) {
-      return zencoder().encode(str);
+      return zencoder().encode(...arguments);
     }
   }
   return globalThis.encoder;
@@ -822,6 +822,10 @@ globalThis.zhttpClone = function zclone(re){
     return zhttpCopy(re).clone();
   }
 }
+globalThis.burn = async function burn(re){
+  try{await re?.arrayBuffer?.()}catch{}
+};
+
 globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
   const req = res instanceof Request;
   if(req && /^(GET|HEAD)$/i.test(String(res?.method))){return res;}
@@ -846,10 +850,11 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
           value: "",
           done: false
         };
-        timeoutHandle = setTimeout(() => {
+        timeoutHandle = setTimeout(async() => {
           if(timedout)console.log(`Stream timed out after ${options.timeout}ms`);
           zcontrollerClose(controller);
           resolveStreamProcessed();
+          await burn(res);
         }, options.timeout);
         if(options.head){
           zcontrollerEnqueue(controller,await httpEncode(options.head));
@@ -863,7 +868,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
             let encodedChunk;
             if(!modifiedChunk.done && !options.passthrough) {
               let decodedChunk = options.encode 
-                               ? (await zdecoder().zasyncDecode(chunk.value))
+                               ? (await zdecoder().zasyncDecode(chunk.value,{stream:true}))
                                : chunk.value;
               modifiedChunk = await transform(decodedChunk);
               encodedChunk = options.encode 
@@ -891,8 +896,9 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
         timedout = false;
       }
     });
-    streamProcessed.then(() => {
+    streamProcessed.then(async() => {
       tryReleaseLock(stream,reader.reader);
+      await burn(res);
       clearTimeout(timeoutHandle);
     });
     ctx?.waitUntil?.(streamProcessed);
