@@ -166,6 +166,10 @@ globalThis.serializeHTTP ??= function serializeHTTP(re) {
     let key = `fetch-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
     (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
   }catch{}}
+  for(const a in re.cf) {try{
+    let key = `fetch-cf-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
+  }catch{}}
   return reDTO;
 }
 
@@ -238,7 +242,7 @@ globalThis.znewArrayBuffer = function(input) {
     }
     return buf;
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return newArrayBuffer(e.message);
   }
 }
@@ -257,13 +261,13 @@ globalThis.zresponseText = async function zresponseText(response) {
             }
             txtArr.push(zdecoder().zdecode(chunk?.value));
           }catch(e){
-            console.log(e,...arguments);
+            console.warn(e,...arguments);
             txtArr.push(`/*${e.message}*/`);
           }
     }
     return txtArr.join``;
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return String(e?.message);
   }
 };
@@ -274,7 +278,7 @@ globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(response) 
   try {
     return await responseArrayBuffer(response.clone());
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return znewArrayBuffer(String(e?.message));
   }
 };
@@ -286,7 +290,7 @@ globalThis.zfetch = async function() {
     try {
       return (await adefer(fetch.call(this, arguments[0])));
     } catch {
-      console.log(e,...arguments);
+      console.warn(e,...arguments);
       const match = await adefer(fuzzyMatch(e.message));
       if(match[2] >= 2) {
         code = +match[0] || 569;
@@ -311,7 +315,7 @@ globalThis.znewRequest = function(input, options) {
         try {
           req = new Request(input);
         } catch (e) {
-          console.log(e,...arguments);
+          console.warn(e,...arguments);
           input = serializeHTTP(input);
           input.body = e.message;
           req = new Request(input);
@@ -324,7 +328,7 @@ globalThis.znewRequest = function(input, options) {
         try {
           req = new Request(input);
         } catch {
-          console.log(e,...arguments);
+          console.warn(e,...arguments);
           options = serializeHTTP(options);
           options.body = e.message;
           req = new Request(input, options);
@@ -332,7 +336,7 @@ globalThis.znewRequest = function(input, options) {
       }
     }
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     const url = input.url || input;
     req = new Request(url, {
       headers: {
@@ -358,20 +362,20 @@ globalThis.znewResponse = function znewResponse(body, options) {
         }
         res = new Response(znewReadbleStream(body));
       } catch (e) {
-        console.log(e,...arguments);
+        console.warn(e,...arguments);
         res = new Response(`${body}`);
       }
     } else {
       try {
         res = new Response(znewReadableStream(body), options);
       } catch (e) {
-        console.log(e,...arguments);
+        console.warn(e,...arguments);
         try {
           res = new Response(`${body}`, options);
         } catch (e) {
-          console.log(e,...arguments);
+          console.warn(e,...arguments);
           try {
-            console.log(e,...arguments);
+            console.warn(e,...arguments);
             res = znewResponse(`${body}`, {
               headers: {
                 "error-message": e.message,
@@ -381,13 +385,13 @@ globalThis.znewResponse = function znewResponse(body, options) {
               redirect: "follow"
             });
           } catch (e) {
-            console.log(e, ...arguments);
+            console.warn(e, ...arguments);
           }
         }
       }
     }
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     res = new Response(e.message, {
       status: 569,
       statusText: e.message,
@@ -405,7 +409,7 @@ globalThis.znewURL = function znewURL() {
   try {
     return new URL(...arguments);
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     try {
       return new URL(arguments[0]);
     } catch {
@@ -419,7 +423,7 @@ globalThis.znewURL = function znewURL() {
 }
 globalThis.zfetchText = async function() {
   try {
-    console.log(...arguments)
+    console.warn(...arguments)
     let res = await adefer(fetch.apply(this, arguments));
     if(res?.status > 399) {
       return `${String(res?.status)}${String(res?.statusText)}`;
@@ -427,7 +431,7 @@ globalThis.zfetchText = async function() {
     const resText = await adefer(responseText(res));
     return resText;
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return String(e?.message);
   }
 }
@@ -455,7 +459,7 @@ globalThis.ztoCharCodes = function ztoCharCodes(strng) {
     }
   }
   if(err){
-    console.log(err,...arguments);
+    console.warn(err,...arguments);
   }
   return new Uint8Array(charCodeArr);
 }
@@ -472,7 +476,7 @@ globalThis.zfromCharCodes = function zfromCharCodes(arr) {
   try {
     arr = [...arr]
   } catch(e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     arr = [...arguments]
   }
   const charArr = [];
@@ -488,7 +492,7 @@ globalThis.zfromCharCodes = function zfromCharCodes(arr) {
     }
   }
   if(err){
-    console.log(err,...arguments);
+    console.warn(err,...arguments);
   }
   return charArr.join``;
 }
@@ -576,7 +580,7 @@ globalThis.znewReadableStream = function znewReadableStream() {
       try{
         return new ReadableStream(...arguments);
       }catch(e){
-        console.log(e,...arguments);
+        console.warn(e,...arguments);
       }
     }
   	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
@@ -589,14 +593,14 @@ globalThis.znewReadableStream = function znewReadableStream() {
   		return makeReadableStream(...arguments);
   	}catch(e){
       try{
-      console.log(e,...arguments);
+      console.warn(e,...arguments);
   		return ReadableStream?.from?.(...arguments);
       }catch(e){
         return newReadableStream(e.message);
       }
   	}
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return newReadableStream(e?.message);
   }
 }
@@ -605,9 +609,9 @@ globalThis.zdecoder = function zdecoder() {
     globalThis.decoder = new TextDecoder();
     globalThis.decoder.zdecode = function zdecode(raw) {
       try {
-        return globalThis.decoder.decode(...arguments);
+        return globalThis.decoder.decode(raw);
       } catch (e) {
-        console.log(e,...arguments);
+        console.warn(e,...arguments);
         try {
           return zfromCharCodes(raw);
         } catch {
@@ -616,7 +620,7 @@ globalThis.zdecoder = function zdecoder() {
       }
     }
     globalThis.decoder.zasyncDecode = async function zasyncDecode(raw) {
-      return zdecoder().decode(...arguments);
+      return zdecoder().decode(raw);
     }
   }
   return globalThis.decoder;
@@ -626,9 +630,9 @@ globalThis.zencoder = function zencoder() {
     globalThis.encoder = new TextEncoder();
     globalThis.encoder.zencode = function zencode(str) {
       try {
-        return globalThis.encoder.encode(...arguments);
+        return globalThis.encoder.encode(str);
       } catch (e) {
-        console.log(e,...arguments);
+        console.warn(e,...arguments);
         try {
           return ztoCharCodes(str);
         } catch {
@@ -637,7 +641,7 @@ globalThis.zencoder = function zencoder() {
       }
     }
     globalThis.encoder.zasyncEncode = async function zasyncEncode(str) {
-      return zencoder().encode(...arguments);
+      return zencoder().encode(str);
     }
   }
   return globalThis.encoder;
@@ -652,7 +656,7 @@ globalThis.zgetReader = function zgetReader(stream) {
   try {
     return getReader(stream);
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     try{
       return getReader(znewReadableStream(stream));
     }catch{
@@ -665,7 +669,7 @@ globalThis.zread = async function zread(reader) {
     try {
       reader.reader.releaseLock();
     } catch (e) {
-      console.log(e,...arguments);
+      console.warn(e,...arguments);
     }
     return {
       value: undefined,
@@ -678,12 +682,12 @@ globalThis.zread = async function zread(reader) {
       try {
         reader.reader.releaseLock();
       } catch (e) {
-        console.log(e,...arguments);
+        console.warn(e,...arguments);
       }
     }
     return rtrn;
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     reader.almostDone = true;
     return {
       value: zencoder().zencode(e.message),
@@ -695,7 +699,7 @@ globalThis.zcontrollerClose = function zcontrollerClose(controller) {
   try {
     return controller.close();
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return controller;
   }
 }
@@ -709,7 +713,7 @@ globalThis.zcontrollerEnqueue = async function zcontrollerEnqueue(controller,enc
       controller.enqueue(chunk);
     }
   }catch(e){
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     try{
       const response = new Response(`/*${e.message}*/`);
       const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
@@ -723,11 +727,11 @@ globalThis.zatob = function(str) {
   try {
     return atob(str);
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     try {
       return btoa(str)
     } catch (e) {
-      console.log(e,...arguments);
+      console.warn(e,...arguments);
       return str;
     }
   }
@@ -736,7 +740,7 @@ JSON.zparse = function zparse() {
   try {
     return JSON.parse(...arguments);
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return e;
   }
 }
@@ -744,7 +748,7 @@ JSON.zstringify = function zparse() {
   try {
     return JSON.stringify(...arguments);
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     const a = Object.getOwnPropertyNames(e);
     const obj = {};
     for(const x of a) {
@@ -758,7 +762,7 @@ globalThis.tryReleaseLock = function(stream, reader = stream.getReader()) {
     try {
       reader.releaseLock();
     } catch (e) {
-      console.log(e,...arguments);
+      console.warn(e,...arguments);
     }
   }
 }
@@ -766,7 +770,7 @@ globalThis.zdecodeURIComponent = function zdecodeURIComponent(txt) {
   try {
     return decodeURIComponent(txt);
   } catch (e){
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     try {
       return decodeURI(txt);
     } catch {
@@ -778,7 +782,7 @@ globalThis.zencodeURIComponent = function zencodeURIComponent(txt) {
   try {
     return encodeURIComponent(txt);
   } catch(e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     try {
       return encodeURI(txt);
     } catch {
@@ -793,7 +797,7 @@ globalThis.zheadersSet = function zheadersSet(headers, key, val) {
     try {
       return headers.set(String(key).replace(/[^a-zA-Z-]/g, ''), String(val));
     } catch {
-      console.log(e,...arguments);
+      console.warn(e,...arguments);
     }
   }
 }
@@ -804,7 +808,7 @@ globalThis.zheadersGet = function zheadersGet(headers, key) {
     try {
       return headers.get(String(key).replace(/[^a-zA-Z-]/g, ''));
     } catch {
-      console.log(e,...arguments);
+      console.warn(e,...arguments);
     }
   }
 }
@@ -818,7 +822,7 @@ globalThis.zhttpClone = function zclone(re){
   try{
     return re.clone();
   }catch(e){
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return zhttpCopy(re).clone();
   }
 }
@@ -851,7 +855,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
           done: false
         };
         timeoutHandle = setTimeout(async() => {
-          if(timedout)console.log(`Stream timed out after ${options.timeout}ms`);
+          if(timedout)console.warn(`Stream timed out after ${options.timeout}ms`);
           zcontrollerClose(controller);
           resolveStreamProcessed();
           await burn(res);
@@ -868,7 +872,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
             let encodedChunk;
             if(!modifiedChunk.done && !options.passthrough) {
               let decodedChunk = options.encode 
-                               ? (await zdecoder().zasyncDecode(chunk.value,{stream:true}))
+                               ? (await zdecoder().zasyncDecode(chunk.value))
                                : chunk.value;
               modifiedChunk = await transform(decodedChunk);
               encodedChunk = options.encode 
@@ -880,7 +884,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
             zcontrollerEnqueue(controller,encodedChunk);
           } catch (e) {
             try {
-              console.log(e,...arguments);
+              console.warn(e,...arguments);
               zcontrollerEnqueue(controller,await zencoder().zasyncEncode(e.message));
               break;
             } catch {
@@ -907,7 +911,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
     }) : new Response(stream, res);
     return res;
   } catch (e) {
-    console.log(e,...arguments);
+    console.warn(e,...arguments);
     return res;
   }
 }
