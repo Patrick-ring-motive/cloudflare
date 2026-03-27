@@ -112,7 +112,7 @@ const unofficialStatusErrors = {
   527: "Railgun Error",
   529: "Site is overloaded",
   530: "Site is frozen",
- "530.0": "Origin DNS Error",
+  "530.0": "Origin DNS Error",
   540: "Temporarily Disabled",
   598: "Network read timeout error",
   599: "Network Connect Timeout Error",
@@ -179,7 +179,7 @@ const ftpStatusErrors = {
   632: "Confidentiality and integrity protected reply",
   633: "Confidentiality protected reply",
 }
-const objDoProp = function (obj, prop, def, enm, mut) {
+const objDoProp = function(obj, prop, def, enm, mut) {
   return Object.defineProperty(obj, prop, {
     value: def,
     writable: mut,
@@ -187,23 +187,23 @@ const objDoProp = function (obj, prop, def, enm, mut) {
     configurable: mut
   });
 };
-const objDefProp=(obj, prop, def) => objDoProp (obj, prop, def, false, true);
-const objDefEnum=(obj, prop, def) => objDoProp (obj, prop, def, true, true);
-objDefProp(String.prototype,"rm",function rm(re){
-  return this.replace(re,'');
+const objDefProp = (obj, prop, def) => objDoProp(obj, prop, def, false, true);
+const objDefEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, true);
+objDefProp(String.prototype, "rm", function rm(re) {
+  return this.replace(re, '');
 });
-objDefProp(Array.prototype,"joinWords",function joinWords(re){
+objDefProp(Array.prototype, "joinWords", function joinWords(re) {
   return this.join(' ');
 });
-objDefProp(String.prototype,"splitWords",function splitWords(re){
+objDefProp(String.prototype, "splitWords", function splitWords(re) {
   return this.split(' ');
 });
 
 const errorCodeList = [officialStatusErrors, unofficialStatusErrors, ftpStatusErrors].reduce((x, y) => x.concat(Object.entries(y)), []);
 const lcs = function lcs(seq1, seq2) {
   "use strict";
-  let arr1 = [...seq1??[]];
-  let arr2 = [...seq2??[]];
+  let arr1 = [...seq1 ?? []];
+  let arr2 = [...seq2 ?? []];
   if (arr2.length > arr1.length) {
     [arr1, arr2] = [arr2, arr1];
   }
@@ -247,12 +247,12 @@ const lcws = function lcws(seq1, seq2) {
 };
 const lessErr = function lessErr(str) {
   return String(str).toLowerCase()
-                     .replace(/[^a-zA-Z ]/g, ' ')
-                     .rm(/Exception|Error/gi)
-                     .rm(/Err/gi)
-                     .splitWords()
-                     .filter(x => x && x?.length)
-                     .joinWords();
+    .replace(/[^a-zA-Z ]/g, ' ')
+    .rm(/Exception|Error/gi)
+    .rm(/Err/gi)
+    .splitWords()
+    .filter(x => x && x?.length)
+    .joinWords();
 }
 const doMatch = function doMatch(str1, str2) {
   str1 = lessErr(str1);
@@ -274,7 +274,7 @@ async function fuzzyFetch() {
     if (match[2] >= 2) {
       code = +match[0] || 569;
     }
-    return (new Response(arguments[0] + '\n' +  e.message + '\n' + e.stack, {
+    return (new Response(arguments[0] + '\n' + e.message + '\n' + e.stack, {
       status: code,
       statusText: e.message
     }));

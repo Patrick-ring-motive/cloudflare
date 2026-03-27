@@ -1,31 +1,36 @@
-import {fuzzyMatch} from './fuzz.js';
+import {
+  fuzzyMatch
+} from './fuzz.js';
 
-
-(()=>{
+(() => {
   const q = (varFn) => {
-    try{
+    try {
       return varFn?.();
-    }catch(e){
-      if(e.name != 'ReferenceError'){
+    } catch (e) {
+      if (e.name != 'ReferenceError') {
         throw e;
       }
     }
   }
 
-  const globalObject = q(()=>globalThis) // works in most modern runtimes
-                    ?? q(()=>self) // also works in most modern runtimes
-                    ?? q(()=>global) // fallback for older nodejs
-                    ?? q(()=>window) // fallback for older browsers
-                    ?? this ?? {}; // fallbacks for edge cases.
-                    
-  for(let x of ['globalThis','self','global']){
+  const globalObject = q(() => globalThis) // works in most modern runtimes
+    ??
+    q(() => self) // also works in most modern runtimes
+    ??
+    q(() => global) // fallback for older nodejs
+    ??
+    q(() => window) // fallback for older browsers
+    ??
+    this ?? {}; // fallbacks for edge cases.
+
+  for (let x of ['globalThis', 'self', 'global']) {
     globalObject[x] = globalObject;
   }
   self.q = q;
 
   self.newQ = (...args) => {
-     const fn = args?.shift?.();
-     return fn && new fn(...args);
+    const fn = args?.shift?.();
+    return fn && new fn(...args);
   };
 })();
 globalThis.sleep = function sleep(ms) {
@@ -33,13 +38,13 @@ globalThis.sleep = function sleep(ms) {
 }
 
 globalThis.adefer = async function adefer(promise) {
-   return(await Promise.all([
+  return (await Promise.all([
     promise,
-   // sleep(0),
-   ]))?.[0];
+    // sleep(0),
+  ]))?.[0];
 }
 
-globalThis. objDoProp = function (obj, prop, def, enm, mut) {
+globalThis.objDoProp = function(obj, prop, def, enm, mut) {
   return Object.defineProperty(obj, prop, {
     value: def,
     writable: mut,
@@ -47,27 +52,28 @@ globalThis. objDoProp = function (obj, prop, def, enm, mut) {
     configurable: mut,
   });
 };
-globalThis. objDefProp = (obj, prop, def) => objDoProp(obj, prop, def, false, true);
-globalThis. objDefEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, true);
-globalThis. objFrzProp = (obj, prop, def) => objDoProp(obj, prop, def, false, false);
-globalThis. objFrzEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, false);
-globalThis. objectNames = (x) => Object.getOwnPropertyNames(x);
-globalThis. objectSymbols = function () {
+globalThis.objDefProp = (obj, prop, def) => objDoProp(obj, prop, def, false, true);
+globalThis.objDefEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, true);
+globalThis.objFrzProp = (obj, prop, def) => objDoProp(obj, prop, def, false, false);
+globalThis.objFrzEnum = (obj, prop, def) => objDoProp(obj, prop, def, true, false);
+globalThis.objectNames = (x) => Object.getOwnPropertyNames(x);
+globalThis.objectSymbols = function() {
   return Object.getOwnPropertySymbols(...arguments);
 };
-globalThis.objDefProps = function objDefProps(obj,props={}){
-  for(let prop in props){
-    objDefProp(obj,prop,props[prop]);
+globalThis.objDefProps = function objDefProps(obj, props = {}) {
+  for (let prop in props) {
+    objDefProp(obj, prop, props[prop]);
   }
   return obj;
 };
-globalThis. objGetProto = function () {
+globalThis.objGetProto = function() {
   return Object.getPrototypeOf(...arguments);
 };
-globalThis. objSetProto = function () {
+globalThis.objSetProto = function() {
   return Object.setPrototypeOf(...arguments);
 };
 globalThis.create = (proto) => Object.create(proto);
+
 function assignAll(target, src) {
   let excepts = ["prototype", "constructor", "__proto__"];
   let enums = [];
@@ -131,100 +137,106 @@ function assignAll(target, src) {
   return target;
 }
 
-
-
-fetch.prototype ?? objDefProps(fetch,{
-  prototype:fetch,
-  constructor:fetch
+fetch.prototype ?? objDefProps(fetch, {
+  prototype: fetch,
+  constructor: fetch
 });
 globalThis.newFetch = function newFetch(init) {
-  return objDefProp(Object.assign(create(fetch.prototype), init),'constructor',fetch);
+  return objDefProp(Object.assign(create(fetch.prototype), init), 'constructor', fetch);
 }
 globalThis.Read = ReadableStreamDefaultReader.prototype.read;
-objDefProps(Read,{
-  prototype:Read,
-  constructor:Read,
+objDefProps(Read, {
+  prototype: Read,
+  constructor: Read,
 });
 globalThis.newRead = function newRead(init) {
-  return objDefProp(Object.assign(create(Read.prototype), init),'constructor',Read);
+  return objDefProp(Object.assign(create(Read.prototype), init), 'constructor', Read);
 }
 
 globalThis.serializeHTTP ??= function serializeHTTP(re) {
   const reDTO = newFetch({
     headers: Object.fromEntries(re.headers)
   });
-  for(const a in re) {
-    if(re[a] == null || typeof re[a] === 'function') {
+  for (const a in re) {
+    if (re[a] == null || typeof re[a] === 'function') {
       continue;
     }
-    if(~String(a).search(/headers|fetcher|signal/)) {
+    if (~String(a).search(/headers|fetcher|signal/)) {
       continue;
     }
     reDTO[a] = re[a];
   }
-  for(const a in re) {try{
-    let key = `fetch-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
-    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
-  }catch{}}
-  for(const a in re.cf) {try{
-    let key = `fetch-cf-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
-    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
-  }catch{}}
+  for (const a in re) {
+    try {
+      let key = `fetch-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+      (reDTO.headers ??= {})[key] = String(re[a]?.name ?? re[a]);
+    } catch {}
+  }
+  for (const a in re.cf) {
+    try {
+      let key = `fetch-cf-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+      (reDTO.headers ??= {})[key] = String(re[a]?.name ?? re[a]);
+    } catch {}
+  }
   return reDTO;
 }
 
 globalThis.newRespond = function newRespond(init) {
-  if(!globalThis.Respond){
-    globalThis.Respond = q(()=>FetchEvent)?.prototype?.respondWith ?? function respondWith(){};
-    objDefProps(Respond,{
-      prototype:Respond,
-      constructor:Respond,
+  if (!globalThis.Respond) {
+    globalThis.Respond = q(() => FetchEvent)?.prototype?.respondWith ?? function respondWith() {};
+    objDefProps(Respond, {
+      prototype: Respond,
+      constructor: Respond,
     });
   }
-  return objDefProp(Object.assign(create(Respond.prototype), init),'constructor',Respond);
+  return objDefProp(Object.assign(create(Respond.prototype), init), 'constructor', Respond);
 }
 globalThis.serializeResponse ??= function serializeResponse(re) {
   const reDTO = newRespond({
     headers: Object.fromEntries(re.headers)
   });
-  for(const a in re) {
-    if(re[a] == null || typeof re[a] === 'function') {
+  for (const a in re) {
+    if (re[a] == null || typeof re[a] === 'function') {
       continue;
     }
-    if(~String(a).search(/headers|fetcher|signal/)) {
+    if (~String(a).search(/headers|fetcher|signal/)) {
       continue;
     }
     reDTO[a] = re[a];
   }
-  for(const a in re) {try{
-    let key = `response-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
-    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
-  }catch{}}
+  for (const a in re) {
+    try {
+      let key = `response-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+      (reDTO.headers ??= {})[key] = String(re[a]?.name ?? re[a]);
+    } catch {}
+  }
   return reDTO;
 }
 globalThis.serializeRequest ??= function serializeRequest(re) {
   const reDTO = newFetch({
     headers: Object.fromEntries(re.headers)
   });
-  for(const a in re) {
-    if(re[a] == null || typeof re[a] === 'function') {
+  for (const a in re) {
+    if (re[a] == null || typeof re[a] === 'function') {
       continue;
     }
-    if(~String(a).search(/headers|fetcher|signal/)) {
+    if (~String(a).search(/headers|fetcher|signal/)) {
       continue;
     }
     reDTO[a] = re[a];
   }
-  for(const a in re) {try{
-    let key = `request-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
-    (reDTO.headers??={})[key] = String(re[a]?.name??re[a]);
-  }catch{}}
+  for (const a in re) {
+    try {
+      let key = `request-${String(a).replace(/[^a-zA-Z-]/g,'').replace(/([a-z])([A-Z])/g,'$1-$2')}`;
+      (reDTO.headers ??= {})[key] = String(re[a]?.name ?? re[a]);
+    } catch {}
+  }
   return reDTO;
 }
 globalThis.newArrayBuffer = function(input) {
   const buf = new ArrayBuffer(input.length * 2);
   const bufView = new Uint16Array(buf);
-  for(let i = 0, inputLen = bufView.length; i !== inputLen; i++) {
+  for (let i = 0, inputLen = bufView.length; i !== inputLen; i++) {
     bufView[i] = input?.charCodeAt?.(i) || +input[i];
   }
   return buf;
@@ -233,7 +245,7 @@ globalThis.znewArrayBuffer = function(input) {
   try {
     const buf = new ArrayBuffer(input.length * 2);
     const bufView = new Uint16Array(buf);
-    for(let i = 0, inputLen = bufView.length; i !== inputLen; i++) {
+    for (let i = 0, inputLen = bufView.length; i !== inputLen; i++) {
       try {
         bufView[i] = input?.charCodeAt?.(i) || +input[i];
       } catch {
@@ -242,7 +254,7 @@ globalThis.znewArrayBuffer = function(input) {
     }
     return buf;
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return newArrayBuffer(e.message);
   }
 }
@@ -253,21 +265,21 @@ globalThis.zresponseText = async function zresponseText(response) {
   try {
     const reader = zgetReader(response.body);
     const txtArr = [];
-    while(true) {
-      try{
-            const chunk = await zread(reader);
-            if(chunk?.done ?? !chunk) {
-              break;
-            }
-            txtArr.push(zdecoder().zdecode(chunk?.value));
-          }catch(e){
-            console.warn(e,...arguments);
-            txtArr.push(`/*${e.message}*/`);
-          }
+    while (true) {
+      try {
+        const chunk = await zread(reader);
+        if (chunk?.done ?? !chunk) {
+          break;
+        }
+        txtArr.push(zdecoder().zdecode(chunk?.value));
+      } catch (e) {
+        console.warn(e, ...arguments);
+        txtArr.push(`/*${e.message}*/`);
+      }
     }
     return txtArr.join``;
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return String(e?.message);
   }
 };
@@ -278,7 +290,7 @@ globalThis.zresponseArrayBuffer = async function zresponseArrayBuffer(response) 
   try {
     return await responseArrayBuffer(response.clone());
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return znewArrayBuffer(String(e?.message));
   }
 };
@@ -290,9 +302,9 @@ globalThis.zfetch = async function() {
     try {
       return (await adefer(fetch.call(this, arguments[0])));
     } catch {
-      console.warn(e,...arguments);
+      console.warn(e, ...arguments);
       const match = await adefer(fuzzyMatch(e.message));
-      if(match[2] >= 2) {
+      if (match[2] >= 2) {
         code = +match[0] || 569;
       }
       return await adefer((znewResponse(arguments[0] + '\n' + e?.message + '\n' + e?.stack, {
@@ -308,14 +320,14 @@ globalThis.zfetch = async function() {
 globalThis.znewRequest = function(input, options) {
   let req;
   try {
-    if(!options) {
-      if(typeof input == 'string') {
+    if (!options) {
+      if (typeof input == 'string') {
         req = new Request(input);
       } else {
         try {
           req = new Request(input);
         } catch (e) {
-          console.warn(e,...arguments);
+          console.warn(e, ...arguments);
           input = serializeHTTP(input);
           input.body = e.message;
           req = new Request(input);
@@ -328,7 +340,7 @@ globalThis.znewRequest = function(input, options) {
         try {
           req = new Request(input);
         } catch {
-          console.warn(e,...arguments);
+          console.warn(e, ...arguments);
           options = serializeHTTP(options);
           options.body = e.message;
           req = new Request(input, options);
@@ -336,7 +348,7 @@ globalThis.znewRequest = function(input, options) {
       }
     }
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     const url = input.url || input;
     req = new Request(url, {
       headers: {
@@ -352,30 +364,30 @@ globalThis.znewRequest = function(input, options) {
 globalThis.znewResponse = function znewResponse(body, options) {
   let res;
   try {
-    if(/^(101|204|205|304)$/.test(String(options?.status))){
-      return new Response(null,options);
+    if (/^(101|204|205|304)$/.test(String(options?.status))) {
+      return new Response(null, options);
     }
-    if(!options) {
+    if (!options) {
       try {
-        if(/^(101|204|205|304)$/.test(String(body?.status))){
-          return new Response(null,body);
+        if (/^(101|204|205|304)$/.test(String(body?.status))) {
+          return new Response(null, body);
         }
         res = new Response(znewReadbleStream(body));
       } catch (e) {
-        console.warn(e,...arguments);
+        console.warn(e, ...arguments);
         res = new Response(`${body}`);
       }
     } else {
       try {
         res = new Response(znewReadableStream(body), options);
       } catch (e) {
-        console.warn(e,...arguments);
+        console.warn(e, ...arguments);
         try {
           res = new Response(`${body}`, options);
         } catch (e) {
-          console.warn(e,...arguments);
+          console.warn(e, ...arguments);
           try {
-            console.warn(e,...arguments);
+            console.warn(e, ...arguments);
             res = znewResponse(`${body}`, {
               headers: {
                 "error-message": e.message,
@@ -391,7 +403,7 @@ globalThis.znewResponse = function znewResponse(body, options) {
       }
     }
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     res = new Response(e.message, {
       status: 569,
       statusText: e.message,
@@ -409,7 +421,7 @@ globalThis.znewURL = function znewURL() {
   try {
     return new URL(...arguments);
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     try {
       return new URL(arguments[0]);
     } catch {
@@ -425,20 +437,20 @@ globalThis.zfetchText = async function() {
   try {
     console.warn(...arguments)
     let res = await adefer(fetch.apply(this, arguments));
-    if(res?.status > 399) {
+    if (res?.status > 399) {
       return `${String(res?.status)}${String(res?.statusText)}`;
     }
     const resText = await adefer(responseText(res));
     return resText;
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return String(e?.message);
   }
 }
 globalThis.toCharCodes = function toCharCodes(str) {
   const charCodeArr = [];
   const str_length = str.length;
-  for(let i = 0; i < str_length; i++) {
+  for (let i = 0; i < str_length; i++) {
     const code = str.charCodeAt(i);
     charCodeArr.push(code);
   }
@@ -449,24 +461,24 @@ globalThis.ztoCharCodes = function ztoCharCodes(strng) {
   const charCodeArr = [];
   const str_length = str.length;
   let err;
-  for(let i = 0; i < str_length; i++) {
+  for (let i = 0; i < str_length; i++) {
     try {
       const code = str.charCodeAt(i);
       charCodeArr.push(code);
-    } catch(e) {
+    } catch (e) {
       err = e;
       continue;
     }
   }
-  if(err){
-    console.warn(err,...arguments);
+  if (err) {
+    console.warn(err, ...arguments);
   }
   return new Uint8Array(charCodeArr);
 }
 globalThis.fromCharCodes = function fromCharCodes(arr) {
   const charArr = [];
   const arr_length = arr.length;
-  for(let i = 0; i < arr_length; i++) {
+  for (let i = 0; i < arr_length; i++) {
     const char = String.fromCharCode(arr[i]);
     charArr.push(char);
   }
@@ -475,92 +487,92 @@ globalThis.fromCharCodes = function fromCharCodes(arr) {
 globalThis.zfromCharCodes = function zfromCharCodes(arr) {
   try {
     arr = [...arr]
-  } catch(e) {
-    console.warn(e,...arguments);
+  } catch (e) {
+    console.warn(e, ...arguments);
     arr = [...arguments]
   }
   const charArr = [];
   const arr_length = arr.length;
   let err;
-  for(let i = 0; i < arr_length; i++) {
+  for (let i = 0; i < arr_length; i++) {
     try {
       const char = String.fromCharCode(arr[i]);
       charArr.push(char);
-    } catch(e) {
+    } catch (e) {
       err = e;
       continue;
     }
   }
-  if(err){
-    console.warn(err,...arguments);
+  if (err) {
+    console.warn(err, ...arguments);
   }
   return charArr.join``;
 }
 
-function cloneStream(stream){
+function cloneStream(stream) {
   const tees = stream.tee()
-  assignAll(stream,tees[0]);
+  assignAll(stream, tees[0]);
   return tees[1];
 }
-globalThis.bytes = async function bytes(res){
+globalThis.bytes = async function bytes(res) {
   return await (res?.bytes?.() ?? (new Uint8Array(await res.arrayBuffer())));
 };
-globalThis.httpEncode = async function httpEncode(val){
-  return  await bytes(new Response(val));
+globalThis.httpEncode = async function httpEncode(val) {
+  return await bytes(new Response(val));
 }
-globalThis.httpDecode = async function httpDecode(val){
-  return  await new Response(val).text();
+globalThis.httpDecode = async function httpDecode(val) {
+  return await new Response(val).text();
 }
 
-globalThis.makeReadableStream = function makeReadableStream(data){
-    const dat = [data];
-    let nextChunk = ()=>dat.shift();
-    if(data[Symbol.iterator]){
-      const iter = data[Symbol.iterator]();
-      nextChunk = ()=>iter.next();
-    }else if(data[Symbol.asyncIterator]){
-      nextChunk = async ()=>await data[Symbol.asyncIterator]().next();
-    }else if(data.next){
-      nextChunk = ()=>data.next();
-    }else if(data.read){
-      nextChunk = ()=>data.read();
-    }else if(data.length){
-      const iter = [][Symbol.iterator].call(data);
-      nextChunk = ()=>iter.next();
-    }else if(arguments.length>1){
-      const iter = [][Symbol.iterator].call(arguments);
-      nextChunk = ()=>iter.next();
-    }
-    let resolveStreamProcessed;
-    const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
-  
-    const stream = new ReadableStream({
-    async start(controller){
-    while(true){
-      try{
-      const dataChunk = await nextChunk();
-      if(dataChunk?.done || !dataChunk){
-        break;
-      }
-    let value = dataChunk.value;
-    if(Number.isInteger(value)){
-      value = new Uint32Array([value]);
-    }else if(value?.every?.(x=>Number.isInteger(x))){
-              value = new Uint32Array([...value]);
-            }
-        const response = new Response(value);
-        const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
-    controller.enqueue(chunk);
-      }catch{
+globalThis.makeReadableStream = function makeReadableStream(data) {
+  const dat = [data];
+  let nextChunk = () => dat.shift();
+  if (data[Symbol.iterator]) {
+    const iter = data[Symbol.iterator]();
+    nextChunk = () => iter.next();
+  } else if (data[Symbol.asyncIterator]) {
+    nextChunk = async () => await data[Symbol.asyncIterator]().next();
+  } else if (data.next) {
+    nextChunk = () => data.next();
+  } else if (data.read) {
+    nextChunk = () => data.read();
+  } else if (data.length) {
+    const iter = [][Symbol.iterator].call(data);
+    nextChunk = () => iter.next();
+  } else if (arguments.length > 1) {
+    const iter = [][Symbol.iterator].call(arguments);
+    nextChunk = () => iter.next();
+  }
+  let resolveStreamProcessed;
+  const streamProcessed = new Promise(resolve => resolveStreamProcessed = resolve);
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      while (true) {
+        try {
+          const dataChunk = await nextChunk();
+          if (dataChunk?.done || !dataChunk) {
+            break;
+          }
+          let value = dataChunk.value;
+          if (Number.isInteger(value)) {
+            value = new Uint32Array([value]);
+          } else if (value?.every?.(x => Number.isInteger(x))) {
+            value = new Uint32Array([...value]);
+          }
+          const response = new Response(value);
+          const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
+          controller.enqueue(chunk);
+        } catch {
           break;
         }
+      }
+      controller.close();
+      resolveStreamProcessed();
     }
-    controller.close();
-    resolveStreamProcessed();
-  }
-});
+  });
   streamProcessed.then(() => {
-      tryReleaseLock(stream);
+    tryReleaseLock(stream);
   });
   return stream;
 }
@@ -571,47 +583,47 @@ globalThis.newReadableStream = function(input) {
 
 globalThis.znewReadableStream = function znewReadableStream() {
   try {
-  	const type = String(arguments?.[0]?.constructor?.name);
-  	if(type === 'ReadableStream'){
-  		return arguments[0];
+    const type = String(arguments?.[0]?.constructor?.name);
+    if (type === 'ReadableStream') {
+      return arguments[0];
       //return cloneStream(arguments[0]);
-  	}
-    if(arguments?.[0]?.start){
-      try{
+    }
+    if (arguments?.[0]?.start) {
+      try {
         return new ReadableStream(...arguments);
-      }catch(e){
-        console.warn(e,...arguments);
+      } catch (e) {
+        console.warn(e, ...arguments);
       }
     }
-  	if(/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)){
-  		return newReadableStream(...arguments);
-  	}
-  	try{
-      if(ReadableStream.from){
+    if (/Blob|ArrayBuffer|.+Array|DataView|FormData|URLSearchParams|String/.test(type)) {
+      return newReadableStream(...arguments);
+    }
+    try {
+      if (ReadableStream.from) {
         //return ReadableStream.from(...arguments);
       }
-  		return makeReadableStream(...arguments);
-  	}catch(e){
-      try{
-      console.warn(e,...arguments);
-  		return ReadableStream?.from?.(...arguments);
-      }catch(e){
+      return makeReadableStream(...arguments);
+    } catch (e) {
+      try {
+        console.warn(e, ...arguments);
+        return ReadableStream?.from?.(...arguments);
+      } catch (e) {
         return newReadableStream(e.message);
       }
-  	}
+    }
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return newReadableStream(e?.message);
   }
 }
 globalThis.zdecoder = function zdecoder() {
-  if(!globalThis.decoder) {
+  if (!globalThis.decoder) {
     globalThis.decoder = new TextDecoder();
     globalThis.decoder.zdecode = function zdecode(raw) {
       try {
         return globalThis.decoder.decode(raw);
       } catch (e) {
-        console.warn(e,...arguments);
+        console.warn(e, ...arguments);
         try {
           return zfromCharCodes(raw);
         } catch {
@@ -626,13 +638,13 @@ globalThis.zdecoder = function zdecoder() {
   return globalThis.decoder;
 }
 globalThis.zencoder = function zencoder() {
-  if(!globalThis.encoder) {
+  if (!globalThis.encoder) {
     globalThis.encoder = new TextEncoder();
     globalThis.encoder.zencode = function zencode(str) {
       try {
         return globalThis.encoder.encode(str);
       } catch (e) {
-        console.warn(e,...arguments);
+        console.warn(e, ...arguments);
         try {
           return ztoCharCodes(str);
         } catch {
@@ -648,28 +660,28 @@ globalThis.zencoder = function zencoder() {
 }
 globalThis.getReader = function getReader(stream) {
   return newRead({
-    reader : stream.getReader(),
-    almostDone : false,
+    reader: stream.getReader(),
+    almostDone: false,
   });
 }
 globalThis.zgetReader = function zgetReader(stream) {
   try {
     return getReader(stream);
   } catch (e) {
-    console.warn(e,...arguments);
-    try{
+    console.warn(e, ...arguments);
+    try {
       return getReader(znewReadableStream(stream));
-    }catch{
+    } catch {
       return getReader(znewReadableStream(e?.message));
     }
   }
 }
 globalThis.zread = async function zread(reader) {
-  if(reader.almostDone) {
+  if (reader.almostDone) {
     try {
       reader.reader.releaseLock();
     } catch (e) {
-      console.warn(e,...arguments);
+      console.warn(e, ...arguments);
     }
     return {
       value: undefined,
@@ -678,16 +690,16 @@ globalThis.zread = async function zread(reader) {
   }
   try {
     const rtrn = await reader.reader.read();
-    if(rtrn.done) {
+    if (rtrn.done) {
       try {
         reader.reader.releaseLock();
       } catch (e) {
-        console.warn(e,...arguments);
+        console.warn(e, ...arguments);
       }
     }
     return rtrn;
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     reader.almostDone = true;
     return {
       value: zencoder().zencode(e.message),
@@ -699,26 +711,26 @@ globalThis.zcontrollerClose = function zcontrollerClose(controller) {
   try {
     return controller.close();
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return controller;
   }
 }
-globalThis.zcontrollerEnqueue = async function zcontrollerEnqueue(controller,encodedChunk){
-  try{
-    if('Uint8Array' === encodedChunk?.constructor?.name){
+globalThis.zcontrollerEnqueue = async function zcontrollerEnqueue(controller, encodedChunk) {
+  try {
+    if ('Uint8Array' === encodedChunk?.constructor?.name) {
       controller.enqueue(encodedChunk);
-    }else{
+    } else {
       const response = znewResponse(encodedChunk);
       const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
       controller.enqueue(chunk);
     }
-  }catch(e){
-    console.warn(e,...arguments);
-    try{
+  } catch (e) {
+    console.warn(e, ...arguments);
+    try {
       const response = new Response(`/*${e.message}*/`);
       const chunk = await (response?.bytes?.() ?? (new Uint8Array(await response.arrayBuffer())));
       controller.enqueue(chunk);
-    }catch{}
+    } catch {}
   }
 }
 
@@ -727,11 +739,11 @@ globalThis.zatob = function(str) {
   try {
     return atob(str);
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     try {
       return btoa(str)
     } catch (e) {
-      console.warn(e,...arguments);
+      console.warn(e, ...arguments);
       return str;
     }
   }
@@ -740,7 +752,7 @@ JSON.zparse = function zparse() {
   try {
     return JSON.parse(...arguments);
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return e;
   }
 }
@@ -748,29 +760,29 @@ JSON.zstringify = function zparse() {
   try {
     return JSON.stringify(...arguments);
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     const a = Object.getOwnPropertyNames(e);
     const obj = {};
-    for(const x of a) {
+    for (const x of a) {
       obj[x] = e[x];
     }
     return JSON.stringify(obj);
   }
 }
 globalThis.tryReleaseLock = function(stream, reader = stream.getReader()) {
-  if(stream?.locked) {
+  if (stream?.locked) {
     try {
       reader.releaseLock();
     } catch (e) {
-      console.warn(e,...arguments);
+      console.warn(e, ...arguments);
     }
   }
 }
 globalThis.zdecodeURIComponent = function zdecodeURIComponent(txt) {
   try {
     return decodeURIComponent(txt);
-  } catch (e){
-    console.warn(e,...arguments);
+  } catch (e) {
+    console.warn(e, ...arguments);
     try {
       return decodeURI(txt);
     } catch {
@@ -781,8 +793,8 @@ globalThis.zdecodeURIComponent = function zdecodeURIComponent(txt) {
 globalThis.zencodeURIComponent = function zencodeURIComponent(txt) {
   try {
     return encodeURIComponent(txt);
-  } catch(e) {
-    console.warn(e,...arguments);
+  } catch (e) {
+    console.warn(e, ...arguments);
     try {
       return encodeURI(txt);
     } catch {
@@ -797,7 +809,7 @@ globalThis.zheadersSet = function zheadersSet(headers, key, val) {
     try {
       return headers.set(String(key).replace(/[^a-zA-Z-]/g, ''), String(val));
     } catch {
-      console.warn(e,...arguments);
+      console.warn(e, ...arguments);
     }
   }
 }
@@ -808,41 +820,47 @@ globalThis.zheadersGet = function zheadersGet(headers, key) {
     try {
       return headers.get(String(key).replace(/[^a-zA-Z-]/g, ''));
     } catch {
-      console.warn(e,...arguments);
+      console.warn(e, ...arguments);
     }
   }
 }
-globalThis.zhttpCopy = function zhttpCopy(re){
-  if(re instanceof Request) {
-      return znewRequest(...arguments);
-    }
-    return znewResponse(re?.body,re);
+globalThis.zhttpCopy = function zhttpCopy(re) {
+  if (re instanceof Request) {
+    return znewRequest(...arguments);
+  }
+  return znewResponse(re?.body, re);
 };
-globalThis.zhttpClone = function zclone(re){
-  try{
+globalThis.zhttpClone = function zclone(re) {
+  try {
     return re.clone();
-  }catch(e){
-    console.warn(e,...arguments);
+  } catch (e) {
+    console.warn(e, ...arguments);
     return zhttpCopy(re).clone();
   }
 }
-globalThis.burn = async function burn(re){
-  try{await re?.arrayBuffer?.()}catch{}
+globalThis.burn = async function burn(re) {
+  try {
+    await re?.arrayBuffer?.()
+  } catch {}
 };
 
 globalThis.transformStream = async function transformStream(res, transform, ctx, options = {}) {
   const req = res instanceof Request;
-  if(req && /^(GET|HEAD)$/i.test(String(res?.method))){return res;}
-  if(/^(101|204|205|304)$/.test(String(res?.status))){return res;}
+  if (req && /^(GET|HEAD)$/i.test(String(res?.method))) {
+    return res;
+  }
+  if (/^(101|204|205|304)$/.test(String(res?.status))) {
+    return res;
+  }
   let timedout = true;
   try {
     options.timeout ??= 25000;
     options.encode ??= true;
     options.passthrough ??= false;
-    if(options.copy === 'new'){
+    if (options.copy === 'new') {
       res = zhttpCopy(res);
     }
-    if(options.copy === 'clone'){
+    if (options.copy === 'clone') {
       res = zhttpClone(res);
     }
     const reader = zgetReader(res.body);
@@ -854,54 +872,54 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
           value: "",
           done: false
         };
-        timeoutHandle = setTimeout(async() => {
-          if(timedout)console.warn(`Stream timed out after ${options.timeout}ms`);
+        timeoutHandle = setTimeout(async () => {
+          if (timedout) console.warn(`Stream timed out after ${options.timeout}ms`);
           zcontrollerClose(controller);
           resolveStreamProcessed();
           await burn(res);
         }, options.timeout);
-        if(options.head){
-          zcontrollerEnqueue(controller,await httpEncode(options.head));
+        if (options.head) {
+          zcontrollerEnqueue(controller, await httpEncode(options.head));
         }
-        while(true) {
+        while (true) {
           try {
             const chunk = await (zread(reader));
-            if(chunk.done) {
+            if (chunk.done) {
               break;
             }
             let encodedChunk;
-            if(!modifiedChunk.done && !options.passthrough) {
-              let decodedChunk = options.encode 
-                               ? (await zdecoder().zasyncDecode(chunk.value))
-                               : chunk.value;
+            if (!modifiedChunk.done && !options.passthrough) {
+              let decodedChunk = options.encode ?
+                (await zdecoder().zasyncDecode(chunk.value)) :
+                chunk.value;
               modifiedChunk = await transform(decodedChunk);
-              encodedChunk = options.encode 
-                           ? (await zencoder().zasyncEncode(modifiedChunk.value))
-                           : modifiedChunk;
+              encodedChunk = options.encode ?
+                (await zencoder().zasyncEncode(modifiedChunk.value)) :
+                modifiedChunk;
             } else {
               encodedChunk = chunk.value;
             }
-            zcontrollerEnqueue(controller,encodedChunk);
+            zcontrollerEnqueue(controller, encodedChunk);
           } catch (e) {
             try {
-              console.warn(e,...arguments);
-              zcontrollerEnqueue(controller,await zencoder().zasyncEncode(e.message));
+              console.warn(e, ...arguments);
+              zcontrollerEnqueue(controller, await zencoder().zasyncEncode(e.message));
               break;
             } catch {
               break;
             }
           }
         }
-        if(options.tail){
-          zcontrollerEnqueue(controller,await httpEncode(options.tail));
+        if (options.tail) {
+          zcontrollerEnqueue(controller, await httpEncode(options.tail));
         }
         zcontrollerClose(controller);
         resolveStreamProcessed();
         timedout = false;
       }
     });
-    streamProcessed.then(async() => {
-      tryReleaseLock(stream,reader.reader);
+    streamProcessed.then(async () => {
+      tryReleaseLock(stream, reader.reader);
       await burn(res);
       clearTimeout(timeoutHandle);
     });
@@ -911,7 +929,7 @@ globalThis.transformStream = async function transformStream(res, transform, ctx,
     }) : new Response(stream, res);
     return res;
   } catch (e) {
-    console.warn(e,...arguments);
+    console.warn(e, ...arguments);
     return res;
   }
 }
@@ -921,7 +939,6 @@ globalThis.limitResponse = async function limitResponse(res, ctx, timeout) {
     passthrough: true
   });
 }
-
 
 globalThis.prependResponse = async function prependResponse(res, ctx, head) {
   return await transformStream(res, null, ctx, {
